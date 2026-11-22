@@ -13,9 +13,12 @@ export type CommandId =
   | 'sidebar.toggle'
   | 'go.notes'
   | 'go.search'
+  | 'go.views'
   | 'go.books'
   | 'go.trash'
-  | 'app.settings';
+  | 'app.settings'
+  | 'view.newNote'
+  | 'view.togglePin';
 
 export interface Command {
   readonly title: string;

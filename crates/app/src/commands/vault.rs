@@ -4,10 +4,9 @@ use std::path::PathBuf;
 use tauri::{AppHandle, Manager, State};
 use tauri_plugin_dialog::DialogExt;
 use ts_rs::TS;
-use vault_core::{
-    AdoptReport, TreeEntry, Vault, VaultError, VaultPath, load_app_settings, remember_vault,
-};
+use vault_core::{AdoptReport, TreeEntry, Vault, VaultPath, load_app_settings, remember_vault};
 
+use super::run_in_background;
 use crate::error::{CommandError, CommandResult, ErrorCode};
 use crate::state::AppState;
 
@@ -102,16 +101,4 @@ pub async fn vault_adopt(state: State<'_, AppState>) -> CommandResult<AdoptRepor
     let report = run_in_background(move || vault.adopt()).await?;
     state.request_index_sync();
     Ok(report)
-}
-
-/// Runs slow file work on a blocking thread, so the async runtime stays free.
-async fn run_in_background<T, F>(work: F) -> CommandResult<T>
-where
-    T: Send + 'static,
-    F: FnOnce() -> Result<T, VaultError> + Send + 'static,
-{
-    tauri::async_runtime::spawn_blocking(work)
-        .await
-        .map_err(|error| CommandError::new(ErrorCode::Io, error.to_string()))?
-        .map_err(CommandError::from)
 }

@@ -11,7 +11,7 @@ use tauri::{AppHandle, Emitter};
 use vault_core::Vault;
 use vault_index::{IndexError, NoteIndex};
 
-use crate::events::INDEX_PROGRESS;
+use crate::events::{INDEX_PROGRESS, INDEX_UPDATED};
 
 pub struct Indexer {
     index: Arc<NoteIndex>,
@@ -48,9 +48,13 @@ fn run(vault: &Vault, index: &NoteIndex, requests: &Receiver<()>, app: &AppHandl
         let result = index.sync(vault, |progress| {
             let _ = app.emit(INDEX_PROGRESS, progress);
         });
-        if let Err(error) = result {
+        match result {
+            Ok(report) if report.indexed > 0 || report.removed > 0 => {
+                let _ = app.emit(INDEX_UPDATED, ());
+            }
+            Ok(_) => {}
             // The index is a cache; search is just less fresh until the next sync.
-            eprintln!("Search index sync failed: {error}");
+            Err(error) => eprintln!("Search index sync failed: {error}"),
         }
     }
 }

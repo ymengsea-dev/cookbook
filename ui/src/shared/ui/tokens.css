@@ -69,6 +69,8 @@
   --text-max-width: 420px;
   --icon-size: 16px;
   --control-height: 28px;
+  --peek-width: 360px;
+  --board-column-width: 272px;
 }
 
 @media (prefers-color-scheme: dark) {

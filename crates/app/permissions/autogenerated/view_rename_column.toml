@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-view-rename-column"
+description = "Enables the view_rename_column command without any pre-configured scope."
+commands.allow = ["view_rename_column"]
+
+[[permission]]
+identifier = "deny-view-rename-column"
+description = "Denies the view_rename_column command without any pre-configured scope."
+commands.deny = ["view_rename_column"]

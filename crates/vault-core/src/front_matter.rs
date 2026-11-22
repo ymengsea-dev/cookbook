@@ -3,14 +3,14 @@
 //! Edits are line based on purpose: a YAML library would rewrite the whole block,
 //! losing comments, key order and quoting. Here only the changed key's line moves.
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 use yaml_rust2::{Yaml, YamlLoader};
 
 use crate::VaultError;
 
 /// One front matter value, typed. Nested maps are not shown as properties.
-#[derive(Debug, Clone, PartialEq, Serialize, TS)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[serde(tag = "type", content = "value", rename_all = "lowercase")]
 #[ts(export)]
 pub enum PropertyValue {
@@ -21,7 +21,7 @@ pub enum PropertyValue {
     Null,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, TS)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub struct Property {
     pub key: String,

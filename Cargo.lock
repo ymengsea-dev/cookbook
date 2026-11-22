@@ -58,6 +58,7 @@ dependencies = [
  "ts-rs",
  "vault-core",
  "vault-index",
+ "vault-views",
 ]
 
 [[package]]
@@ -4332,6 +4333,19 @@ dependencies = [
  "thiserror 2.0.21",
  "ts-rs",
  "vault-core",
+]
+
+[[package]]
+name = "vault-views"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.21",
+ "ts-rs",
+ "vault-core",
+ "vault-index",
 ]
 
 [[package]]

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-view-move-card"
+description = "Enables the view_move_card command without any pre-configured scope."
+commands.allow = ["view_move_card"]
+
+[[permission]]
+identifier = "deny-view-move-card"
+description = "Denies the view_move_card command without any pre-configured scope."
+commands.deny = ["view_move_card"]

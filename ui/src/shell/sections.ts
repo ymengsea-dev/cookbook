@@ -1,7 +1,8 @@
 import type { CommandId } from '../shared/commands/index.ts';
 import type { IconName } from '../shared/ui/index.ts';
 
-export type SectionId = 'notes' | 'search' | 'books' | 'trash' | 'settings';
+/** `view` is one saved view; `views` lists them all. */
+export type SectionId = 'notes' | 'search' | 'books' | 'views' | 'view' | 'trash' | 'settings';
 
 export interface Section {
   readonly id: SectionId;
@@ -15,6 +16,8 @@ export const LIBRARY: readonly Section[] = [
   { id: 'search', title: 'Search', icon: 'search', command: 'go.search' },
   { id: 'books', title: 'Books', icon: 'book', command: 'go.books' },
 ];
+
+export const ALL_VIEWS: Section = { id: 'views', title: 'All Views', icon: 'list', command: 'go.views' };
 
 export const TRASH: Section = { id: 'trash', title: 'Trash', icon: 'trash', command: 'go.trash' };
 

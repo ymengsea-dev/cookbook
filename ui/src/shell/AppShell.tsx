@@ -5,6 +5,7 @@ import type { TreeEntry } from '../shared/ipc/index.ts';
 import { Banner } from '../shared/ui/index.ts';
 import { useSettings } from '../shared/settings/index.ts';
 import { treeHasPath, useVault } from '../shared/vault/index.ts';
+import { useOpenView } from '../views/index.ts';
 import { SectionPage } from './SectionPage.tsx';
 import { Sidebar } from './Sidebar.tsx';
 import { Toolbar } from './Toolbar.tsx';
@@ -18,6 +19,12 @@ interface ChosenNote {
   readonly path: string | null;
 }
 
+/** The saved view the user opened, per vault. */
+interface ChosenView {
+  readonly vaultRoot: string;
+  readonly id: string;
+}
+
 export function AppShell() {
   const vault = useVault();
   const { snapshot, rememberLastNote } = useSettings();
@@ -25,9 +32,12 @@ export function AppShell() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [quickOpenVisible, setQuickOpenVisible] = useState(false);
   const [chosen, setChosen] = useState<ChosenNote | null>(null);
+  const [chosenView, setChosenView] = useState<ChosenView | null>(null);
 
   const vaultRoot = vault.info?.root ?? null;
   const openPath = chooseOpenPath(chosen, vaultRoot, snapshot?.local.lastNote ?? null, vault.tree);
+  const openViewId = chosenView !== null && chosenView.vaultRoot === vaultRoot ? chosenView.id : null;
+  const openView = useOpenView(section === 'view' ? openViewId : null);
 
   const showNote = useCallback(
     (path: string | null) => {
@@ -39,11 +49,21 @@ export function AppShell() {
     [vaultRoot, rememberLastNote],
   );
 
+  const showView = useCallback(
+    (id: string) => {
+      if (vaultRoot === null) return;
+      setChosenView({ vaultRoot, id });
+      setSection('view');
+    },
+    [vaultRoot],
+  );
+
   const actions = useNoteActions(openPath, showNote);
   const { createNote, deleteNote } = actions;
   const { chooseVault } = vault;
   const hasVault = vaultRoot !== null;
   const hasNote = openPath !== null;
+  const { data: viewData, save: saveView, newNote: newNoteInView } = openView;
   const commands = useMemo<CommandTable>(
     () => ({
       'vault.open': { title: 'Open Folder…', shortcut: 'Mod-o', enabled: true, run: () => { void chooseVault(); } },
@@ -59,21 +79,49 @@ export function AppShell() {
       'go.notes': { title: 'All Notes', shortcut: 'Mod-1', enabled: true, run: () => { setSection('notes'); } },
       'go.search': { title: 'Search', shortcut: 'Mod-Shift-f', enabled: true, run: () => { setSection('search'); } },
       'go.books': { title: 'Books', shortcut: 'Mod-2', enabled: true, run: () => { setSection('books'); } },
+      'go.views': { title: 'All Views', shortcut: 'Mod-4', enabled: true, run: () => { setSection('views'); } },
       'go.trash': { title: 'Trash', shortcut: 'Mod-3', enabled: true, run: () => { setSection('trash'); } },
       'app.settings': { title: 'Settings', shortcut: 'Mod-,', enabled: true, run: () => { setSection('settings'); } },
+      'view.newNote': {
+        title: 'New Note in View',
+        shortcut: 'Mod-Shift-n',
+        enabled: viewData !== null,
+        run: () => {
+          void newNoteInView(null).then((path) => {
+            if (path !== null) showNote(path);
+          });
+        },
+      },
+      'view.togglePin': {
+        title: viewData?.definition.pinned === true ? 'Unpin from Sidebar' : 'Pin to Sidebar',
+        enabled: viewData !== null,
+        run: () => {
+          if (viewData === null) return;
+          saveView({ ...viewData.definition, pinned: !viewData.definition.pinned });
+        },
+      },
     }),
-    [sidebarOpen, chooseVault, hasVault, hasNote, createNote, deleteNote],
+    [sidebarOpen, chooseVault, hasVault, hasNote, createNote, deleteNote, viewData, saveView, newNoteInView, showNote],
   );
 
   return (
     <CommandProvider commands={commands}>
       <div className={sidebarOpen ? 'shell' : 'shell shell--collapsed'}>
-        {sidebarOpen && <Sidebar current={section} openPath={openPath} onOpenNote={showNote} />}
+        {sidebarOpen && (
+          <Sidebar current={section} openPath={openPath} openViewId={openViewId} onOpenNote={showNote} onOpenView={showView} />
+        )}
         <div className="shell__main">
           <Toolbar sidebarOpen={sidebarOpen} />
           {vault.error !== null && <Banner message={vault.error} onDismiss={vault.clearError} />}
           <main className="shell__content">
-            <SectionPage section={section} openPath={openPath} actions={actions} onOpenNote={showNote} />
+            <SectionPage
+              section={section}
+              openPath={openPath}
+              openView={openView}
+              actions={actions}
+              onOpenNote={showNote}
+              onOpenView={showView}
+            />
           </main>
         </div>
       </div>

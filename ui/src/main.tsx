@@ -5,6 +5,7 @@ import { flushBeforeQuit } from './shared/lifecycle.ts';
 import { SettingsProvider } from './shared/settings/index.ts';
 import { VaultProvider } from './shared/vault/index.ts';
 import { AppShell } from './shell/AppShell.tsx';
+import { ViewsProvider } from './views/index.ts';
 import './shared/ui/tokens.css';
 
 // Closing the window or pressing ⌘Q waits for open notes to save (E-5).
@@ -19,7 +20,9 @@ createRoot(container).render(
   <StrictMode>
     <VaultProvider>
       <SettingsProvider>
-        <AppShell />
+        <ViewsProvider>
+          <AppShell />
+        </ViewsProvider>
       </SettingsProvider>
     </VaultProvider>
   </StrictMode>,

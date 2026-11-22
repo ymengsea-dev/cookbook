@@ -23,6 +23,7 @@ ts-rs = { version = "12.0.1", features = ["no-serde-warnings"] }
 ulid = "3.0.0"
 vault-core = { path = "crates/vault-core" }
 vault-index = { path = "crates/vault-index" }
+vault-views = { path = "crates/vault-views" }
 yaml-rust2 = "0.13.2"
 
 [workspace.lints.rust]

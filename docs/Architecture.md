@@ -73,18 +73,26 @@ Draft the landing page copy first.
 {
   "schemaVersion": 1,
   "id": "website-board",
+  "name": "Website board",
   "type": "board",
-  "source": { "folder": "Projects/Website", "recursive": true },
-  "filter": [{ "property": "archived", "op": "isNot", "value": true }],
+  "source": { "kind": "folder", "folder": "Projects/Website", "recursive": true },
+  "filter": [{ "property": "archived", "op": "isNot", "value": "true" }],
   "sort": [{ "property": "due", "dir": "asc" }],
+  "groupBy": null,
+  "columns": [],
+  "propertyTypes": { "due": "date" },
+  "pinned": true,
   "board": {
     "groupBy": "status",
     "columns": ["todo", "doing", "done"],
+    "hidden": [],
     "cardProperties": ["due", "tags"],
     "cardOrder": { "doing": ["01JD8Y3N6Q4F9K2V7R5T0W1XZB"] }
   }
 }
 ```
+
+The source is `{ "kind": "vault" }`, a folder as above, or `{ "kind": "tag", "tag": "web" }`. Filter values are text, read by the property's type. The "No value" column is `""`. `groupBy` and `columns` at the top level belong to the list view.
 
 **The vault settings file.**
 

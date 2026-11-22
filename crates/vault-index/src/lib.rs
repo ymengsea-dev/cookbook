@@ -3,11 +3,13 @@
 
 mod extract;
 mod index;
+mod rows;
 mod schema;
 mod search;
 
 pub use extract::{NoteRecord, extract};
 pub use index::{IndexProgress, NoteIndex, SyncReport};
+pub use rows::IndexedNote;
 pub use schema::SCHEMA_VERSION;
 pub use search::{MATCH_END, MATCH_START, SearchHit, make_snippet};
 

@@ -2,7 +2,7 @@
 
 use std::fs;
 
-use crate::front_matter::{PropertyValue, set_property};
+use crate::front_matter::{Property, PropertyValue, set_property};
 use crate::keys::ensure_key;
 use crate::trash::{TrashEntry, list_trash, move_to_trash, restore_from_trash};
 use crate::{ContentHash, NoteFile, Vault, VaultError, VaultPath};
@@ -70,18 +70,32 @@ impl Vault {
 
     /// Creates an empty note named "Untitled", "Untitled 2", … in `folder` (or the vault root).
     pub fn create_note(&self, folder: Option<&VaultPath>) -> Result<NoteFile, VaultError> {
+        self.create_note_with(folder, &[])
+    }
+
+    /// Like `create_note`, with `properties` already in its front matter (L-6, B-6).
+    /// Such a note gets its key at once, so a board can place it by key.
+    pub fn create_note_with(
+        &self,
+        folder: Option<&VaultPath>,
+        properties: &[Property],
+    ) -> Result<NoteFile, VaultError> {
         if let Some(folder) = folder {
             reject_internal(folder)?;
         }
+        let content = starting_content(properties)?;
         for number in 1..=1000 {
             let name = untitled_name(number);
             let path = VaultPath::child_of(folder, &name)?;
             let target = path.to_fs_path(self.root());
-            match self.writer().create_new(&target, b"", path.as_str()) {
+            match self
+                .writer()
+                .create_new(&target, content.as_bytes(), path.as_str())
+            {
                 Ok(hash) => {
                     return Ok(NoteFile {
                         path,
-                        content: String::new(),
+                        content,
                         hash,
                     });
                 }
@@ -147,6 +161,18 @@ impl Vault {
     }
 }
 
+/// Front matter holding `properties` and a key, or nothing at all when there are none.
+fn starting_content(properties: &[Property]) -> Result<String, VaultError> {
+    if properties.is_empty() {
+        return Ok(String::new());
+    }
+    let mut content = String::new();
+    for property in properties {
+        content = set_property(&content, &property.key, &property.value)?;
+    }
+    ensure_key(&content)
+}
+
 fn untitled_name(number: u32) -> String {
     if number == 1 {
         format!("{UNTITLED}.md")
@@ -193,6 +219,21 @@ mod tests {
 
     fn path(raw: &str) -> VaultPath {
         VaultPath::parse(raw).unwrap()
+    }
+
+    #[test]
+    fn a_note_created_with_properties_has_them_and_a_key() {
+        let (_dir, vault) = vault_with(&[("Projects/Other.md", "")]);
+        let status = Property {
+            key: "status".to_string(),
+            value: PropertyValue::Text("doing".to_string()),
+        };
+        let note = vault
+            .create_note_with(Some(&path("Projects")), &[status])
+            .unwrap();
+        assert_eq!(note.path, path("Projects/Untitled.md"));
+        assert!(note.content.starts_with("---\nstatus: doing\nkey: "));
+        assert_eq!(vault.read_note(&note.path).unwrap().content, note.content);
     }
 
     #[test]

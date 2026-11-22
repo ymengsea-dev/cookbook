@@ -11,6 +11,11 @@ impl ContentHash {
         Self(blake3::hash(bytes).to_hex().to_string())
     }
 
+    /// A hash saved earlier with `as_str`, such as the one in the search index.
+    pub fn from_stored(hex: &str) -> Self {
+        Self(hex.to_string())
+    }
+
     pub fn as_str(&self) -> &str {
         &self.0
     }

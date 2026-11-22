@@ -89,6 +89,12 @@
   text-align: left;
 }
 
+.sidebar__item-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .sidebar__item .icon {
   color: var(--ink-secondary);
 }

@@ -1,0 +1,21 @@
+[package]
+name = "vault-views"
+description = "Saved list and board views: view files and the filter, sort and group engine."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+ts-rs = { workspace = true }
+vault-core = { workspace = true }
+vault-index = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }
+
+[lints]
+workspace = true

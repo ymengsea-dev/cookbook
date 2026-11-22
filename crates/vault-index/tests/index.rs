@@ -8,7 +8,7 @@ use std::fs;
 use std::path::Path;
 
 use rusqlite::Connection;
-use vault_core::{Vault, VaultPath};
+use vault_core::{PropertyValue, Vault, VaultPath};
 use vault_index::{NoteIndex, SyncReport};
 
 const FIXTURES: &[&str] = &[
@@ -158,4 +158,36 @@ fn an_old_schema_version_is_rebuilt() {
     let index = NoteIndex::open(&vault).unwrap();
 
     assert_eq!(sync(&index, &vault).indexed, FIXTURES.len());
+}
+
+#[test]
+fn notes_come_back_with_typed_properties() {
+    let dir = tempfile::tempdir().unwrap();
+    let text =
+        "---\nstatus: doing\ncount: 3\ndone: false\ntags: [web, plan]\nempty:\n---\n# Plan\n";
+    fs::write(dir.path().join("Plan.md"), text).unwrap();
+    let vault = Vault::open(dir.path()).unwrap();
+    let index = NoteIndex::open(&vault).unwrap();
+    sync(&index, &vault);
+
+    let notes = index.notes().unwrap();
+    assert_eq!(notes.len(), 1);
+    let note = &notes[0];
+    assert_eq!(note.title, "Plan");
+    assert_eq!(note.key, "path:Plan.md");
+    let values: Vec<PropertyValue> = note.properties.iter().map(|p| p.value.clone()).collect();
+    assert_eq!(
+        values,
+        [
+            PropertyValue::Text("doing".to_string()),
+            PropertyValue::Number(3.0),
+            PropertyValue::Bool(false),
+            PropertyValue::List(vec![
+                PropertyValue::Text("web".to_string()),
+                PropertyValue::Text("plan".to_string()),
+            ]),
+            PropertyValue::Null,
+        ]
+    );
+    assert_eq!(note.tags, ["web", "plan"]);
 }

@@ -1,5 +1,5 @@
 use tauri::State;
-use vault_core::{ContentHash, NoteFile, TrashEntry, VaultPath};
+use vault_core::{ContentHash, NoteFile, PropertyValue, TrashEntry, VaultPath};
 
 use crate::error::CommandResult;
 use crate::state::AppState;
@@ -18,6 +18,22 @@ pub async fn note_save(
     state: State<'_, AppState>,
 ) -> CommandResult<NoteFile> {
     let result = state.vault()?.save_note(&path, &content, &expected_hash)?;
+    state.request_index_sync();
+    Ok(result)
+}
+
+/// Sets one front matter property, changing only its line (L-5). Never adds a key.
+#[tauri::command]
+pub async fn note_set_property(
+    path: VaultPath,
+    key: String,
+    value: PropertyValue,
+    expected_hash: ContentHash,
+    state: State<'_, AppState>,
+) -> CommandResult<NoteFile> {
+    let result = state
+        .vault()?
+        .set_note_property(&path, &key, &value, &expected_hash)?;
     state.request_index_sync();
     Ok(result)
 }

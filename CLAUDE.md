@@ -47,12 +47,16 @@ cargo install --locked cargo-deny && cargo deny check bans
   - `extract.rs` (title, headings, tags, properties, body), `schema.rs` (tables and `SCHEMA_VERSION`; a mismatch rebuilds the DB), `index.rs` (`NoteIndex`: sync by modified time and size, then hash), `search.rs` (FTS5 trigram, plus a LIKE scan for terms under 3 characters).
   - `examples/bench.rs` is `pnpm bench`.
 
+- `crates/vault-views`: saved list and board views.
+  - `definition.rs` (the view file types), `store.rs` (`.vault/views/<id>.json`; unknown keys kept on save), `values.rs` (type inference, L-4), `filter.rs`, `engine.rs` (`run_view`: source, filter, sort, group), `board.rs` (columns and card order), `actions.rs` (new note, move card, rename column; note writes go through `vault-core`).
+  - Views read notes from the index (`NoteIndex::notes`), not from the files.
+
   Add the other crates from `docs/Architecture.md` under `crates/` when their feature starts.
 - `crates/app`: the Tauri shell.
   - `src/commands/`: one file per area. Commands return `CommandResult<T>` (`error.rs`) and run slow file work with `spawn_blocking`.
   - `state.rs`: the open vault, its watcher, and the asset-protocol scope (the vault folder only).
   - `events.rs`: event names sent to the UI.
-  - `indexing.rs`: `Indexer`, a background thread that keeps the index in sync and sends `index-progress`. Every command that writes a note calls `state.request_index_sync()`.
+  - `indexing.rs`: `Indexer`, a background thread that keeps the index in sync and sends `index-progress`, then `index-updated` when anything changed. Every command that writes a note calls `state.request_index_sync()`; open views run again on `index-updated`.
   - `lifecycle.rs`: closing the window or pressing ⌘Q waits for the UI to save, up to 3 s.
   - `tauri.conf.json` holds the window, CSP and bundle settings; `capabilities/default.json` is generated.
 - `ui/`: the React UI. `index.html` is copied to `dist/`, and `src/main.tsx` is bundled there.
@@ -62,6 +66,7 @@ cargo install --locked cargo-deny && cargo deny check bans
     - `NoteEditor` wraps the CodeMirror view.
     - `setup/` holds the extensions: live preview, tables, code blocks, slash menu, front matter, theme.
   - `src/search/`: ⌘P quick open (`QuickOpen`, fuzzy titles in `fuzzy.ts`) and the Search page (full text through `search_notes`).
+  - `src/views/`: list and board views. `useOpenView` holds the open view and reruns it on `index-updated`; `ViewsProvider` holds the list for the sidebar. Board drag uses pointer events, not HTML drag and drop (Tauri can intercept it). Pure logic in `values.ts`, `grid.ts`, `board.ts`.
   - `src/settings/`: the Settings page.
   - `src/shared/`:
     - `ipc` (typed `invoke`/`listen`, generated `bindings/`)

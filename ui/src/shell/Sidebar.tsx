@@ -1,18 +1,23 @@
 import { formatShortcut, useCommand } from '../shared/commands/index.ts';
 import { Icon } from '../shared/ui/index.ts';
 import { useVault } from '../shared/vault/index.ts';
+import { useViews } from '../views/index.ts';
 import { FileTree } from './FileTree.tsx';
 import { IndexStatus } from './IndexStatus.tsx';
-import { LIBRARY, SETTINGS, TRASH, type Section, type SectionId } from './sections.ts';
+import { ALL_VIEWS, LIBRARY, SETTINGS, TRASH, type Section, type SectionId } from './sections.ts';
 
 interface SidebarProps {
   readonly current: SectionId;
   readonly openPath: string | null;
+  readonly openViewId: string | null;
   readonly onOpenNote: (path: string) => void;
+  readonly onOpenView: (id: string) => void;
 }
 
-export function Sidebar({ current, openPath, onOpenNote }: SidebarProps) {
+export function Sidebar({ current, openPath, openViewId, onOpenNote, onOpenView }: SidebarProps) {
   const { info, tree } = useVault();
+  const { views } = useViews();
+  const pinned = views.filter((view) => view.pinned);
 
   return (
     <aside className="sidebar" aria-label="Sidebar">
@@ -24,7 +29,21 @@ export function Sidebar({ current, openPath, onOpenNote }: SidebarProps) {
           <SidebarItem key={section.id} section={section} current={current} />
         ))}
         <p className="sidebar__heading">Views</p>
-        <p className="sidebar__hint">Saved list and board views appear here.</p>
+        {pinned.map((view) => (
+          <button
+            key={view.id}
+            type="button"
+            className="sidebar__item"
+            aria-current={current === 'view' && openViewId === view.id ? 'page' : undefined}
+            onClick={() => {
+              onOpenView(view.id);
+            }}
+          >
+            <Icon name={view.type === 'board' ? 'board' : 'list'} />
+            <span className="sidebar__item-label">{view.name}</span>
+          </button>
+        ))}
+        <SidebarItem section={ALL_VIEWS} current={current} />
         {info !== null && (
           <>
             <p className="sidebar__heading">{info.name}</p>

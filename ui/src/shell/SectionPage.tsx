@@ -3,6 +3,7 @@ import { SearchPage } from '../search/index.ts';
 import { SettingsPage } from '../settings/index.ts';
 import { EmptyState } from '../shared/ui/index.ts';
 import { useVault } from '../shared/vault/index.ts';
+import { ViewPage, ViewsPage, type OpenView } from '../views/index.ts';
 import { AdoptCard } from './AdoptCard.tsx';
 import type { SectionId } from './sections.ts';
 import { TrashPage } from './TrashPage.tsx';
@@ -11,11 +12,13 @@ import type { NoteActions } from './useNoteActions.ts';
 interface SectionPageProps {
   readonly section: SectionId;
   readonly openPath: string | null;
+  readonly openView: OpenView;
   readonly actions: NoteActions;
   readonly onOpenNote: (path: string) => void;
+  readonly onOpenView: (id: string) => void;
 }
 
-export function SectionPage({ section, openPath, actions, onOpenNote }: SectionPageProps) {
+export function SectionPage({ section, openPath, openView, actions, onOpenNote, onOpenView }: SectionPageProps) {
   switch (section) {
     case 'notes':
       return <NotesPage openPath={openPath} actions={actions} />;
@@ -27,6 +30,10 @@ export function SectionPage({ section, openPath, actions, onOpenNote }: SectionP
           Imported PDFs are copied into your vault, and the reader remembers the page where you stopped.
         </EmptyState>
       );
+    case 'views':
+      return <ViewsPage onOpenView={onOpenView} />;
+    case 'view':
+      return <ViewPage view={openView} onOpenNote={onOpenNote} />;
     case 'trash':
       return <TrashPage />;
     case 'settings':

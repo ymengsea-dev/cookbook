@@ -41,11 +41,11 @@ Each task covers one feature only, and is small enough to build in one session.
 
 **M3 · Organize**
 
-- [ ] T-16 Saved views (the engine)
-- [ ] T-17 List view
-- [ ] T-18 Edit notes from the list
-- [ ] T-19 Board view
-- [ ] T-20 Drag cards between columns
+- [x] T-16 Saved views (the engine)
+- [x] T-17 List view
+- [x] T-18 Edit notes from the list
+- [x] T-19 Board view
+- [x] T-20 Drag cards between columns
 
 **M4 · Run code**
 

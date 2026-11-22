@@ -2,6 +2,7 @@ use serde::Serialize;
 use ts_rs::TS;
 use vault_core::VaultError;
 use vault_index::IndexError;
+use vault_views::ViewError;
 
 /// The error every command returns. The UI shows `message` and branches on `code`.
 #[derive(Debug, Serialize, TS)]
@@ -24,6 +25,7 @@ pub enum ErrorCode {
     ChangedOnDisk,
     InvalidFrontMatter,
     ReadOnlySettings,
+    InvalidView,
     Index,
     Io,
 }
@@ -67,5 +69,20 @@ impl From<IndexError> for CommandError {
             IndexError::Vault(vault_error) => Self::from(vault_error),
             other => Self::new(ErrorCode::Index, other.to_string()),
         }
+    }
+}
+
+impl From<ViewError> for CommandError {
+    fn from(error: ViewError) -> Self {
+        let message = error.to_string();
+        let code = match error {
+            ViewError::Vault(vault_error) => return Self::from(vault_error),
+            ViewError::Index(index_error) => return Self::from(index_error),
+            ViewError::NotFound(_) => ErrorCode::NotFound,
+            ViewError::Broken(..) | ViewError::InvalidName(_) => ErrorCode::InvalidView,
+            ViewError::NewerVersion(_) => ErrorCode::ReadOnlySettings,
+            ViewError::Io(_) => ErrorCode::Io,
+        };
+        Self::new(code, message)
     }
 }
