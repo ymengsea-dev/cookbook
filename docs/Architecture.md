@@ -10,54 +10,24 @@ The vault folder on disk is the only source of truth. The index, the sync manife
 
 The UI reaches the core only through typed commands and events, and the core reads and writes the vault folder. Only the Drive adapter talks to anything outside your machine, apart from programs you choose to run from a code block. The system diagram is on the summary page.
 
-## Technology
+## Rust workspace
 
-The app is built with Electron, and everything is written in TypeScript.
+The core is a Cargo workspace of small crates. Dependencies point one way only, and only one crate may touch the network.
 
-| Layer | Technology |
-| --- | --- |
-| Desktop shell | Electron |
-| Language | TypeScript (`strict`) in every package and process |
-| UI | React |
-| Editor | CodeMirror 6 |
-| Index and search | SQLite with FTS5 through `better-sqlite3` |
-| PDF reader | PDF.js |
-| File watcher | `@parcel/watcher` or `chokidar` |
-| Validation | JSON Schema for stored files; runtime validation of every IPC payload |
-| Token storage | Electron `safeStorage` (encryption key held in the macOS Keychain) |
-
-## Process model
-
-Electron runs three kinds of process. Each has one job.
-
-| Process | Runs | May access |
+| Crate | Responsibility | May depend on |
 | --- | --- | --- |
-| Main | The core packages, the command handlers, windows, menus, the global hotkey and token storage | Node.js and the file system |
-| Background (`utilityProcess` or worker threads) | Scanning, indexing, import, export, sync and code runs | Node.js and the file system; reports progress to main |
-| Renderer | The React UI only | Nothing but the API that the preload script exposes |
-
-The renderer is locked down: `contextIsolation: true`, `nodeIntegration: false` and `sandbox: true`. The preload script exposes one typed API through `contextBridge`: invoke a command by id, and subscribe to events. The main process validates every incoming payload before it handles it, and rejects any command id that is not registered.
-
-## TypeScript workspace
-
-The code is a pnpm workspace of small packages. Dependencies point one way only, and only one package may touch the network.
-
-| Package | Responsibility | May depend on |
-| --- | --- | --- |
-| `vault-core` | Notes, front matter, paths, atomic writes, trash, settings files, reader progress, file-watcher events | Node.js standard modules only: no Electron, no network |
+| `vault-core` | Notes, front matter, paths, atomic writes, trash, settings files, reader progress, file-watcher events | Standard libraries only: no Tauri, no network |
 | `vault-index` | SQLite schema, indexing, full-text and property queries | `vault-core` |
 | `vault-views` | View files and the filter, sort and group engine. Property edits go back through `vault-core` | `vault-core`, `vault-index` |
 | `vault-io` | Import and export | `vault-core` |
 | `vault-run` | Finds the runner for a code block's label, writes the code to a temporary file, starts the process with a time limit, and streams its output. Contains no HTTP client | `vault-core` |
-| `vault-sync` | Sync engine, manifest, conflict rules and the `RemoteStore` interface | `vault-core` |
-| `vault-sync-gdrive` | Google Drive adapter for `RemoteStore`. The only package that opens network connections | `vault-sync` |
-| `ipc-contract` | Command ids, payload and result types, event types and their runtime validators. Shared by main, preload and renderer | Nothing |
-| `app` | Electron main process and preload script: command handlers, events, global hotkey, token storage, windows. Wires the packages together | All of the above |
-| `ui` | The React renderer | `ipc-contract` only |
+| `vault-sync` | Sync engine, manifest, conflict rules and the `RemoteStore` trait | `vault-core` |
+| `vault-sync-gdrive` | Google Drive adapter for `RemoteStore`. The only crate that opens network connections | `vault-sync` |
+| `app` | Tauri shell: commands, events, global hotkey, Keychain, windows. Wires the crates together | All of the above |
 
 ## UI structure
 
-The React code in `ui` is split by feature, one folder each: `editor`, `views` (list and board), `reader`, `search`, `sync` and `settings`. Shared parts live in `shared/ui` (components and design tokens) and `shared/commands` (the command registry). A feature may import from `shared` and from another feature's public `index.ts`, and from nothing else.
+The React code is split by feature, one folder each: `editor`, `views` (list and board), `reader`, `search`, `sync` and `settings`. Shared parts live in `shared/ui` (components and design tokens) and `shared/commands` (the command registry). A feature may import from `shared` and from another feature's public `index.ts`, and from nothing else.
 
 ## Vault on disk
 
@@ -146,7 +116,7 @@ The index file holds one set of rows per note key. Deleting it loses nothing.
 
 - **Saving a note.** The UI sends the text to the core after a short pause. The core writes it atomically, remembers the new file hash so the watcher ignores its own write, updates the index and tells the UI.
 - **An outside edit.** The watcher reports a change. If the hash is not one the app wrote, the core re-indexes the note and tells the UI. If that note is open with unsaved edits, the UI asks which version to keep.
-- **A property edit.** Moving a card or editing a list cell sends a `setProperty` command. The core rewrites only that front matter line, then follows the save path.
+- **A property edit.** Moving a card or editing a list cell sends a `set_property` command. The core rewrites only that front matter line, then follows the save path.
 - **Sync.** It runs beside the UI path. It compares each file with the manifest and the remote copy. Every local write it makes goes through `vault-core`, so the index stays correct.
 
 ## Sync decisions

@@ -1,0 +1,17 @@
+# cargo-deny: "Local first". Only vault-sync-gdrive may depend on an HTTP client.
+# Run with `cargo deny check bans` (install: `cargo install --locked cargo-deny`).
+
+[graph]
+# macOS only. Tauri itself depends on reqwest on Android and iOS, which we do not ship.
+targets = ["aarch64-apple-darwin", "x86_64-apple-darwin"]
+
+[bans]
+multiple-versions = "allow"
+deny = [
+  { crate = "reqwest", wrappers = ["vault-sync-gdrive"] },
+  { crate = "hyper", wrappers = ["reqwest"] },
+  { crate = "ureq", wrappers = ["vault-sync-gdrive"] },
+  { crate = "isahc", wrappers = ["vault-sync-gdrive"] },
+  { crate = "surf", wrappers = ["vault-sync-gdrive"] },
+  { crate = "curl", wrappers = ["vault-sync-gdrive"] },
+]

@@ -1,6 +1,6 @@
 # 0001: Electron, TypeScript, esbuild and pnpm
 
-Nov 22, 2026 · Accepted
+Nov 22, 2026 · Superseded by [0002](0002-back-to-tauri-and-rust.md)
 
 ## Context
 

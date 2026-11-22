@@ -12,7 +12,7 @@ A local-first notes app for one person on macOS. Notes are plain Markdown files 
 
 ## Feature overview
 
-| # | Feature | Purpose | Main package / UI folder |
+| # | Feature | Purpose | Main crate / UI folder |
 | --- | --- | --- | --- |
 | 1 | Markdown vault | Store notes as plain `.md` files in a normal folder | `vault-core` |
 | 2 | JSON settings | Keep all settings in readable, versioned JSON files | `vault-core` / `settings` |
@@ -75,7 +75,7 @@ A local-first notes app for one person on macOS. Notes are plain Markdown files 
   - Output streams into a panel under the block, with Stop and Clear (E-12). Each run has a time limit, 30 s by default, that kills the process tree (E-13).
   - Runners are defined in `settings.local.json`. Node, Python 3 and shell are set up by default (E-14).
   - The first run shows a warning that code is not sandboxed. A note from sync or import must be trusted once before it can run (E-15).
-  - Code runs from a temp file, with the note's folder as the working directory, through one main-process command that accepts only configured runners. The renderer can never start a process itself (E-16).
+  - Code runs from a temp file, with the note's folder as the working directory, through one Rust command that accepts only configured runners (E-16).
 
 **If time allows (P1):** table editing (E-7), opening `.json`/`.py`/`.ts` files (E-8), responsive 1 MB notes (E-9), and a "keep output" command (E-17).
 **Later (P2):** Vim keybindings and wrap toggle (E-10), and "run all blocks" (E-18).
@@ -195,15 +195,15 @@ A zero-code alternative already works: keep the vault inside a Google Drive for 
 
 **v1 must deliver (P0):**
 
-- Google sign-in in the system browser: OAuth installed-app flow with PKCE, a loopback redirect and the `drive.file` scope. Tokens are encrypted with Electron `safeStorage`, whose key lives in the macOS Keychain, and are never written to the vault or settings files (SY-1).
+- Google sign-in in the system browser: OAuth installed-app flow with PKCE, a loopback redirect and the `drive.file` scope. Tokens live only in the macOS Keychain (SY-1).
 - One app-created Drive folder mirrors the vault tree (SY-2).
 - A local manifest records, per file: path, key, last-synced hash, Drive file id and version (SY-3). Pull uses `changes.list` with a saved page token, push sends only changed files, and the first sync is a full scan (SY-4).
 - If both sides changed, keep both: the remote version becomes a named conflict copy and you are notified (SY-5). Deletes go to the trash on both sides (SY-6).
 - Never synced: `.vault/index/`, `settings.local.json`, `.vault/trash`, the manifest and OS junk files. Settings, views and snippets do sync (SY-7).
 - Runs in the background at start, after changes and on a timer, with "Sync now" and a status indicator (SY-8). Fully usable offline, with queued retries, backoff and respect for rate limits (SY-9). Pause, sign out or disconnect (SY-10).
-- The engine talks only to a `RemoteStore` interface and is tested against an in-memory fake that simulates two devices (SY-11).
+- The engine talks only to a `RemoteStore` trait and is tested against an in-memory fake that simulates two devices (SY-11).
 
-**Later (P2):** Dropbox and WebDAV through the same interface (SY-12).
+**Later (P2):** Dropbox and WebDAV through the same trait (SY-12).
 
 **Limit to know:** with `drive.file`, the app sees only files it created. A file dragged into the Drive folder in the browser is invisible to sync.
 

@@ -1,0 +1,18 @@
+[package]
+name = "app"
+description = "Tauri shell: commands, events, windows. Wires the crates together."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+
+[build-dependencies]
+tauri-build = { workspace = true }
+
+[dependencies]
+serde = { workspace = true }
+tauri = { workspace = true }
+ts-rs = { workspace = true }
+
+[lints]
+workspace = true
