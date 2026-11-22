@@ -28,3 +28,13 @@ export function folderPaths(entries: readonly TreeEntry[]): string[] {
 export function treeHasPath(entries: readonly TreeEntry[], path: string): boolean {
   return entries.some((entry) => entry.path === path || treeHasPath(entry.children, path));
 }
+
+/** Every note in the tree, in tree order. */
+export function notePaths(entries: readonly TreeEntry[]): string[] {
+  const notes: string[] = [];
+  for (const entry of entries) {
+    if (entry.kind === 'note') notes.push(entry.path);
+    else notes.push(...notePaths(entry.children));
+  }
+  return notes;
+}

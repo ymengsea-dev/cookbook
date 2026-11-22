@@ -1,6 +1,7 @@
 mod commands;
 mod error;
 mod events;
+mod indexing;
 mod lifecycle;
 mod state;
 
@@ -29,6 +30,7 @@ fn main() -> ExitCode {
             commands::notes::note_delete,
             commands::notes::trash_list,
             commands::notes::trash_restore,
+            commands::search::search_notes,
             commands::settings::settings_get,
             commands::settings::settings_save_vault,
             commands::settings::settings_save_local,

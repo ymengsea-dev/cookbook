@@ -16,7 +16,9 @@ mod watcher;
 mod writer;
 
 pub use error::VaultError;
-pub use front_matter::{Property, PropertyValue, read_properties, read_property, set_property};
+pub use front_matter::{
+    Property, PropertyValue, note_body, read_properties, read_property, set_property,
+};
 pub use hash::ContentHash;
 pub use keys::{AdoptReport, KEY_PROPERTY, SkippedNote, ensure_key, has_key};
 pub use settings::{

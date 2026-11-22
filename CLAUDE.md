@@ -16,6 +16,7 @@ pnpm lint         # ESLint, then clippy with -D warnings
 pnpm fmt          # cargo fmt --all
 pnpm check        # fmt check + test + typecheck + lint
 pnpm gen:types    # only regenerate TS bindings from Rust
+pnpm bench        # search speed test on 10,000 generated notes (X-7)
 pnpm sync:commands  # update build.rs and the capability file from main.rs
 
 # One crate / one test
@@ -42,11 +43,16 @@ cargo install --locked cargo-deny && cargo deny check bans
   - `notes.rs`: save, create, rename, move, delete. Every write checks the expected hash.
   - `trash.rs`, `front_matter.rs` (line-based YAML edits), `keys.rs` (ULID keys and adopt vault), `watcher.rs` (outside changes), `settings/` (JSON files, unknown keys kept).
 
+- `crates/vault-index`: the SQLite search index in `.vault/index/index.db`, a disposable cache.
+  - `extract.rs` (title, headings, tags, properties, body), `schema.rs` (tables and `SCHEMA_VERSION`; a mismatch rebuilds the DB), `index.rs` (`NoteIndex`: sync by modified time and size, then hash), `search.rs` (FTS5 trigram, plus a LIKE scan for terms under 3 characters).
+  - `examples/bench.rs` is `pnpm bench`.
+
   Add the other crates from `docs/Architecture.md` under `crates/` when their feature starts.
 - `crates/app`: the Tauri shell.
   - `src/commands/`: one file per area. Commands return `CommandResult<T>` (`error.rs`) and run slow file work with `spawn_blocking`.
   - `state.rs`: the open vault, its watcher, and the asset-protocol scope (the vault folder only).
   - `events.rs`: event names sent to the UI.
+  - `indexing.rs`: `Indexer`, a background thread that keeps the index in sync and sends `index-progress`. Every command that writes a note calls `state.request_index_sync()`.
   - `lifecycle.rs`: closing the window or pressing ⌘Q waits for the UI to save, up to 3 s.
   - `tauri.conf.json` holds the window, CSP and bundle settings; `capabilities/default.json` is generated.
 - `ui/`: the React UI. `index.html` is copied to `dist/`, and `src/main.tsx` is bundled there.
@@ -55,6 +61,7 @@ cargo install --locked cargo-deny && cargo deny check bans
     - `NoteView` loads a note; `useNoteSaver` runs autosave, conflicts and outside changes.
     - `NoteEditor` wraps the CodeMirror view.
     - `setup/` holds the extensions: live preview, tables, code blocks, slash menu, front matter, theme.
+  - `src/search/`: ⌘P quick open (`QuickOpen`, fuzzy titles in `fuzzy.ts`) and the Search page (full text through `search_notes`).
   - `src/settings/`: the Settings page.
   - `src/shared/`:
     - `ipc` (typed `invoke`/`listen`, generated `bindings/`)

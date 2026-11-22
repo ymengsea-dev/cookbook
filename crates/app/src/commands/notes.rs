@@ -17,7 +17,9 @@ pub async fn note_save(
     expected_hash: ContentHash,
     state: State<'_, AppState>,
 ) -> CommandResult<NoteFile> {
-    Ok(state.vault()?.save_note(&path, &content, &expected_hash)?)
+    let result = state.vault()?.save_note(&path, &content, &expected_hash)?;
+    state.request_index_sync();
+    Ok(result)
 }
 
 #[tauri::command]
@@ -25,7 +27,9 @@ pub async fn note_create(
     folder: Option<VaultPath>,
     state: State<'_, AppState>,
 ) -> CommandResult<NoteFile> {
-    Ok(state.vault()?.create_note(folder.as_ref())?)
+    let result = state.vault()?.create_note(folder.as_ref())?;
+    state.request_index_sync();
+    Ok(result)
 }
 
 #[tauri::command]
@@ -34,7 +38,9 @@ pub async fn note_rename(
     new_name: String,
     state: State<'_, AppState>,
 ) -> CommandResult<VaultPath> {
-    Ok(state.vault()?.rename(&path, &new_name)?)
+    let result = state.vault()?.rename(&path, &new_name)?;
+    state.request_index_sync();
+    Ok(result)
 }
 
 #[tauri::command]
@@ -43,13 +49,17 @@ pub async fn note_move(
     folder: Option<VaultPath>,
     state: State<'_, AppState>,
 ) -> CommandResult<VaultPath> {
-    Ok(state.vault()?.move_into(&path, folder.as_ref())?)
+    let result = state.vault()?.move_into(&path, folder.as_ref())?;
+    state.request_index_sync();
+    Ok(result)
 }
 
 /// Moves a note to `.vault/trash`. It can be restored from the Trash page.
 #[tauri::command]
 pub async fn note_delete(path: VaultPath, state: State<'_, AppState>) -> CommandResult<TrashEntry> {
-    Ok(state.vault()?.delete(&path)?)
+    let result = state.vault()?.delete(&path)?;
+    state.request_index_sync();
+    Ok(result)
 }
 
 #[tauri::command]
@@ -59,5 +69,7 @@ pub async fn trash_list(state: State<'_, AppState>) -> CommandResult<Vec<TrashEn
 
 #[tauri::command]
 pub async fn trash_restore(id: String, state: State<'_, AppState>) -> CommandResult<VaultPath> {
-    Ok(state.vault()?.restore(&id)?)
+    let result = state.vault()?.restore(&id)?;
+    state.request_index_sync();
+    Ok(result)
 }

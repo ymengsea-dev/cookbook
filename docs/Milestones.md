@@ -33,11 +33,11 @@ Each task covers one feature only, and is small enough to build in one session.
 
 **M2 · Find anything**
 
-- [ ] T-11 Search index
-- [ ] T-12 Keep the index up to date
-- [ ] T-13 Quick open (⌘P)
-- [ ] T-14 Full-text search
-- [ ] T-15 Speed test
+- [x] T-11 Search index
+- [x] T-12 Keep the index up to date
+- [x] T-13 Quick open (⌘P)
+- [x] T-14 Full-text search
+- [x] T-15 Speed test
 
 **M3 · Organize**
 

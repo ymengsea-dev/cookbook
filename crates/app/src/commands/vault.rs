@@ -99,7 +99,9 @@ pub async fn vault_adopt_preview(state: State<'_, AppState>) -> CommandResult<Ve
 #[tauri::command]
 pub async fn vault_adopt(state: State<'_, AppState>) -> CommandResult<AdoptReport> {
     let vault = state.vault()?;
-    run_in_background(move || vault.adopt()).await
+    let report = run_in_background(move || vault.adopt()).await?;
+    state.request_index_sync();
+    Ok(report)
 }
 
 /// Runs slow file work on a blocking thread, so the async runtime stays free.

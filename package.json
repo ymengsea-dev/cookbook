@@ -21,7 +21,8 @@
     "test": "cargo test --workspace && pnpm test:ui",
     "check": "cargo fmt --all --check && pnpm test && pnpm typecheck && pnpm lint",
     "test:ui": "node --experimental-strip-types --test \"ui/src/**/*.test.ts\"",
-    "sync:commands": "node scripts/sync-commands.mjs"
+    "sync:commands": "node scripts/sync-commands.mjs",
+    "bench": "cargo run --release -p vault-index --example bench"
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.20.4",

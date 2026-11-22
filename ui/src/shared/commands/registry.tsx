@@ -12,6 +12,7 @@ export type CommandId =
   | 'search.quickOpen'
   | 'sidebar.toggle'
   | 'go.notes'
+  | 'go.search'
   | 'go.books'
   | 'go.trash'
   | 'app.settings';

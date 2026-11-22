@@ -10,6 +10,10 @@ impl ContentHash {
     pub fn of(bytes: &[u8]) -> Self {
         Self(blake3::hash(bytes).to_hex().to_string())
     }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
 }
 
 #[cfg(test)]

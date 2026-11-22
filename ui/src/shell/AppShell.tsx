@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
+import { QuickOpen } from '../search/index.ts';
 import { CommandProvider, type CommandTable } from '../shared/commands/index.ts';
 import type { TreeEntry } from '../shared/ipc/index.ts';
 import { Banner } from '../shared/ui/index.ts';
@@ -11,8 +12,6 @@ import type { SectionId } from './sections.ts';
 import { useNoteActions } from './useNoteActions.ts';
 import './shell.css';
 
-const notYet = () => undefined;
-
 /** The note the user chose, per vault. A null path means they closed it. */
 interface ChosenNote {
   readonly vaultRoot: string;
@@ -24,6 +23,7 @@ export function AppShell() {
   const { snapshot, rememberLastNote } = useSettings();
   const [section, setSection] = useState<SectionId>('notes');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [quickOpenVisible, setQuickOpenVisible] = useState(false);
   const [chosen, setChosen] = useState<ChosenNote | null>(null);
 
   const vaultRoot = vault.info?.root ?? null;
@@ -49,8 +49,7 @@ export function AppShell() {
       'vault.open': { title: 'Open Folder…', shortcut: 'Mod-o', enabled: true, run: () => { void chooseVault(); } },
       'note.new': { title: 'New Note', shortcut: 'Mod-n', enabled: hasVault, run: () => { void createNote(); } },
       'note.delete': { title: 'Move to Trash', shortcut: 'Mod-Backspace', enabled: hasNote, run: () => { void deleteNote(); } },
-      // Disabled until search exists (T-13).
-      'search.quickOpen': { title: 'Search', shortcut: 'Mod-p', enabled: false, run: notYet },
+      'search.quickOpen': { title: 'Open Note…', shortcut: 'Mod-p', enabled: hasVault, run: () => { setQuickOpenVisible(true); } },
       'sidebar.toggle': {
         title: sidebarOpen ? 'Hide Sidebar' : 'Show Sidebar',
         shortcut: 'Mod-\\',
@@ -58,6 +57,7 @@ export function AppShell() {
         run: () => { setSidebarOpen((open) => !open); },
       },
       'go.notes': { title: 'All Notes', shortcut: 'Mod-1', enabled: true, run: () => { setSection('notes'); } },
+      'go.search': { title: 'Search', shortcut: 'Mod-Shift-f', enabled: true, run: () => { setSection('search'); } },
       'go.books': { title: 'Books', shortcut: 'Mod-2', enabled: true, run: () => { setSection('books'); } },
       'go.trash': { title: 'Trash', shortcut: 'Mod-3', enabled: true, run: () => { setSection('trash'); } },
       'app.settings': { title: 'Settings', shortcut: 'Mod-,', enabled: true, run: () => { setSection('settings'); } },
@@ -73,10 +73,11 @@ export function AppShell() {
           <Toolbar sidebarOpen={sidebarOpen} />
           {vault.error !== null && <Banner message={vault.error} onDismiss={vault.clearError} />}
           <main className="shell__content">
-            <SectionPage section={section} openPath={openPath} actions={actions} />
+            <SectionPage section={section} openPath={openPath} actions={actions} onOpenNote={showNote} />
           </main>
         </div>
       </div>
+      {quickOpenVisible && <QuickOpen onOpenNote={showNote} onClose={() => { setQuickOpenVisible(false); }} />}
     </CommandProvider>
   );
 }

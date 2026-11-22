@@ -1,7 +1,7 @@
 import type { CommandId } from '../shared/commands/index.ts';
 import type { IconName } from '../shared/ui/index.ts';
 
-export type SectionId = 'notes' | 'books' | 'trash' | 'settings';
+export type SectionId = 'notes' | 'search' | 'books' | 'trash' | 'settings';
 
 export interface Section {
   readonly id: SectionId;
@@ -12,6 +12,7 @@ export interface Section {
 
 export const LIBRARY: readonly Section[] = [
   { id: 'notes', title: 'All Notes', icon: 'note', command: 'go.notes' },
+  { id: 'search', title: 'Search', icon: 'search', command: 'go.search' },
   { id: 'books', title: 'Books', icon: 'book', command: 'go.books' },
 ];
 

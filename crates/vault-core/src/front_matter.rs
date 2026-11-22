@@ -56,6 +56,19 @@ pub fn read_properties(content: &str) -> Result<Vec<Property>, VaultError> {
     Ok(properties)
 }
 
+/// The note's text after its front matter (all of it when there is none).
+pub fn note_body(content: &str) -> &str {
+    match find_block(content) {
+        None => content,
+        Some(block) => {
+            let closing_line_end = content[block.yaml_end..]
+                .find('\n')
+                .map_or(content.len(), |offset| block.yaml_end + offset + 1);
+            &content[closing_line_end..]
+        }
+    }
+}
+
 /// The value of one property, if the note has it.
 pub fn read_property(content: &str, key: &str) -> Result<Option<PropertyValue>, VaultError> {
     let properties = read_properties(content)?;
@@ -274,6 +287,12 @@ mod tests {
             read_property(note, "count").unwrap(),
             Some(PropertyValue::Number(3.0))
         );
+    }
+
+    #[test]
+    fn note_body_skips_the_front_matter() {
+        assert_eq!(note_body("---\na: 1\n---\n# Title\n"), "# Title\n");
+        assert_eq!(note_body("# Just text\n"), "# Just text\n");
     }
 
     #[test]

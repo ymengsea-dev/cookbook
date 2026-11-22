@@ -2,6 +2,7 @@ import { formatShortcut, useCommand } from '../shared/commands/index.ts';
 import { Icon } from '../shared/ui/index.ts';
 import { useVault } from '../shared/vault/index.ts';
 import { FileTree } from './FileTree.tsx';
+import { IndexStatus } from './IndexStatus.tsx';
 import { LIBRARY, SETTINGS, TRASH, type Section, type SectionId } from './sections.ts';
 
 interface SidebarProps {
@@ -34,6 +35,7 @@ export function Sidebar({ current, openPath, onOpenNote }: SidebarProps) {
       <div className="sidebar__footer">
         <SidebarItem section={TRASH} current={current} />
         <hr className="hairline" />
+        <IndexStatus />
         <div className="sidebar__status">
           <span className="status-dot" aria-hidden="true" />
           <span className="sidebar__status-text">Sync off</span>

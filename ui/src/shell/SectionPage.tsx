@@ -1,4 +1,5 @@
 import { NoteView } from '../editor/index.ts';
+import { SearchPage } from '../search/index.ts';
 import { SettingsPage } from '../settings/index.ts';
 import { EmptyState } from '../shared/ui/index.ts';
 import { useVault } from '../shared/vault/index.ts';
@@ -11,12 +12,15 @@ interface SectionPageProps {
   readonly section: SectionId;
   readonly openPath: string | null;
   readonly actions: NoteActions;
+  readonly onOpenNote: (path: string) => void;
 }
 
-export function SectionPage({ section, openPath, actions }: SectionPageProps) {
+export function SectionPage({ section, openPath, actions, onOpenNote }: SectionPageProps) {
   switch (section) {
     case 'notes':
       return <NotesPage openPath={openPath} actions={actions} />;
+    case 'search':
+      return <SearchPage onOpenNote={onOpenNote} />;
     case 'books':
       return (
         <EmptyState title="No books yet">

@@ -21,6 +21,7 @@
     "allow-note-delete",
     "allow-trash-list",
     "allow-trash-restore",
+    "allow-search-notes",
     "allow-settings-get",
     "allow-settings-save-vault",
     "allow-settings-save-local",

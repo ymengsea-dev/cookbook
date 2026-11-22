@@ -4,8 +4,10 @@ import type { AdoptReport } from './bindings/AdoptReport.ts';
 import type { AppInfo } from './bindings/AppInfo.ts';
 import type { CommandError } from './bindings/CommandError.ts';
 import type { ContentHash } from './bindings/ContentHash.ts';
+import type { IndexProgress } from './bindings/IndexProgress.ts';
 import type { LocalSettings } from './bindings/LocalSettings.ts';
 import type { NoteFile } from './bindings/NoteFile.ts';
+import type { SearchHit } from './bindings/SearchHit.ts';
 import type { SettingsSnapshot } from './bindings/SettingsSnapshot.ts';
 import type { TrashEntry } from './bindings/TrashEntry.ts';
 import type { TreeEntry } from './bindings/TreeEntry.ts';
@@ -18,8 +20,10 @@ export type {
   AppInfo,
   CommandError,
   ContentHash,
+  IndexProgress,
   LocalSettings,
   NoteFile,
+  SearchHit,
   SettingsSnapshot,
   TrashEntry,
   TreeEntry,
@@ -50,6 +54,7 @@ interface CommandMap {
   note_delete: { args: { path: string }; result: TrashEntry };
   trash_list: { args: NoArgs; result: TrashEntry[] };
   trash_restore: { args: { id: string }; result: string };
+  search_notes: { args: { query: string; limit: number }; result: SearchHit[] };
   settings_get: { args: NoArgs; result: SettingsSnapshot };
   settings_save_vault: { args: { settings: VaultSettings }; result: null };
   settings_save_local: { args: { settings: LocalSettings }; result: null };
@@ -66,6 +71,7 @@ export function invoke<K extends CommandId>(id: K, args: CommandMap[K]['args']):
 interface EventMap {
   'vault-changed': VaultChange[];
   'before-quit': null;
+  'index-progress': IndexProgress;
 }
 
 /** Listens to a Rust event. Call the returned function to stop listening. */

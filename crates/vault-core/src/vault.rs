@@ -61,6 +61,11 @@ impl Vault {
         read_tree(&self.root)
     }
 
+    /// Every note in the vault, depth first.
+    pub fn note_paths(&self) -> Result<Vec<VaultPath>, VaultError> {
+        Ok(crate::keys::note_paths(&self.tree()?))
+    }
+
     pub fn read_note(&self, path: &VaultPath) -> Result<NoteFile, VaultError> {
         let bytes = fs::read(path.to_fs_path(&self.root))
             .map_err(VaultError::io("read", path.to_string()))?;

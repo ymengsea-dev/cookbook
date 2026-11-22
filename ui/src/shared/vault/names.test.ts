@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { TreeEntry } from '../ipc/index.ts';
-import { folderPaths, noteTitle, parentFolder, treeHasPath } from './names.ts';
+import { folderPaths, notePaths, noteTitle, parentFolder, treeHasPath } from './names.ts';
 
 test('note title drops the folder and the .md extension', () => {
   assert.equal(noteTitle('Projects/Website/Plan.md'), 'Plan');
@@ -21,6 +21,7 @@ test('folder paths lists nested folders in tree order', () => {
   const tree = [folder('A', [folder('A/B'), note('A/n.md')]), folder('C'), note('x.md')];
 
   assert.deepEqual(folderPaths(tree), ['A', 'A/B', 'C']);
+  assert.deepEqual(notePaths(tree), ['A/n.md', 'x.md']);
 });
 
 test('tree has path finds nested notes only', () => {
