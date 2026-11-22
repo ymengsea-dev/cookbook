@@ -1,0 +1,24 @@
+use serde::{Deserialize, Serialize};
+use ts_rs::TS;
+
+/// BLAKE3 hash of a file's bytes, as hex. Used to spot changes made outside the app.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct ContentHash(String);
+
+impl ContentHash {
+    pub fn of(bytes: &[u8]) -> Self {
+        Self(blake3::hash(bytes).to_hex().to_string())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn same_bytes_give_the_same_hash() {
+        assert_eq!(ContentHash::of(b"hello"), ContentHash::of(b"hello"));
+        assert_ne!(ContentHash::of(b"hello"), ContentHash::of(b"hello!"));
+    }
+}

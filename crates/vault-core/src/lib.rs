@@ -2,31 +2,30 @@
 //!
 //! This crate must build and test without Tauri and without any network crate.
 
-use std::path::{Component, Path};
+mod error;
+mod front_matter;
+mod hash;
+mod keys;
+mod notes;
+mod settings;
+mod trash;
+mod tree;
+mod vault;
+mod vault_path;
+mod watcher;
+mod writer;
 
-/// The app's own folder inside every vault.
-pub const VAULT_DIR: &str = ".vault";
-
-/// Whether a vault-relative path points inside the app's `.vault` folder,
-/// which is never treated as a note.
-pub fn is_internal(relative: &Path) -> bool {
-    matches!(relative.components().next(), Some(Component::Normal(first)) if first == VAULT_DIR)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn paths_inside_vault_dir_are_internal() {
-        assert!(is_internal(Path::new(".vault/settings.json")));
-        assert!(is_internal(Path::new(".vault")));
-    }
-
-    #[test]
-    fn notes_are_not_internal() {
-        assert!(!is_internal(Path::new("Inbox/Meeting notes.md")));
-        assert!(!is_internal(Path::new("Projects/.vault/odd.md")));
-        assert!(!is_internal(Path::new("")));
-    }
-}
+pub use error::VaultError;
+pub use front_matter::{Property, PropertyValue, read_properties, read_property, set_property};
+pub use hash::ContentHash;
+pub use keys::{AdoptReport, KEY_PROPERTY, SkippedNote, ensure_key, has_key};
+pub use settings::{
+    AppSettings, EditorSettings, LocalSettings, SCHEMA_VERSION, SettingsSnapshot, VaultSettings,
+    load_app_settings, remember_vault,
+};
+pub use trash::TrashEntry;
+pub use tree::{TreeEntry, TreeEntryKind, read_tree};
+pub use vault::{NoteFile, Vault};
+pub use vault_path::{VAULT_DIR, VaultPath};
+pub use watcher::{VaultChange, VaultWatcher};
+pub use writer::VaultWriter;

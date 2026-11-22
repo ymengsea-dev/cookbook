@@ -23,7 +23,10 @@ export default defineConfig(
       'no-restricted-imports': [
         'error',
         {
-          paths: [{ name: '@tauri-apps/api/core', message: 'Use ui/src/shared/ipc instead.' }],
+          paths: [
+            { name: '@tauri-apps/api/core', message: 'Use ui/src/shared/ipc instead.' },
+            { name: '@tauri-apps/api/event', message: 'Use listen from ui/src/shared/ipc instead.' },
+          ],
         },
       ],
     },
@@ -35,6 +38,15 @@ export default defineConfig(
   {
     files: ['ui/src/**/*.{ts,tsx}'],
     extends: [reactHooks.configs.flat.recommended],
+  },
+  {
+    files: ['**/*.test.ts'],
+    rules: {
+      '@typescript-eslint/no-floating-promises': [
+        'error',
+        { allowForKnownSafeCalls: [{ from: 'package', package: 'node:test', name: ['test', 'it', 'describe', 'suite'] }] },
+      ],
+    },
   },
   {
     files: ['**/*.{js,mjs}'],

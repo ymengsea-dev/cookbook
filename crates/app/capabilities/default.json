@@ -2,6 +2,31 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Everything the main window may call. Keep it to the commands and plugins in use.",
-  "windows": ["main"],
-  "permissions": ["allow-app-info"]
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "allow-app-info",
+    "allow-app-quit",
+    "allow-vault-choose",
+    "allow-vault-restore",
+    "allow-vault-tree",
+    "allow-vault-adopt-preview",
+    "allow-vault-adopt",
+    "allow-note-read",
+    "allow-note-save",
+    "allow-note-create",
+    "allow-note-rename",
+    "allow-note-move",
+    "allow-note-delete",
+    "allow-trash-list",
+    "allow-trash-restore",
+    "allow-settings-get",
+    "allow-settings-save-vault",
+    "allow-settings-save-local",
+    "core:window:allow-start-dragging",
+    "core:window:allow-internal-toggle-maximize",
+    "core:event:allow-listen",
+    "core:event:allow-unlisten"
+  ]
 }

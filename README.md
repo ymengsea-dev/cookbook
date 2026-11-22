@@ -61,17 +61,15 @@ ui/
   index.html
   src/          React UI; shared/ipc holds the typed command wrapper and generated bindings
 scripts/        esbuild build script for the UI
-docs/           Specs, architecture, design rules and decision records
+docs/           Feature specs and architecture
 ```
 
 More crates (`vault-index`, `vault-views`, `vault-io`, `vault-run`, `vault-sync`, `vault-sync-gdrive`) are added as their features start. See [Architecture](docs/Architecture.md).
 
 ## Documentation
 
-- [Feature summary](docs/Notes%20App%20Features.md): features 1 to 10, priorities and acceptance tests
+- [Feature details](docs/Features%20detail.md): features 1 to 10, priorities and acceptance tests
 - [Architecture](docs/Architecture.md): crates, vault layout, data flow and sync rules
-- [Design principles and rules](docs/Design%20principles%20%26%20rules.md): the rules that review and CI enforce
-- [Decision records](docs/adr/)
 
 ## Contributing
 

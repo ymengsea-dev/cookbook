@@ -10,12 +10,13 @@ Needs Rust >= 1.90, Node >= 22.16 and pnpm (pinned in `package.json`). Use pnpm 
 pnpm install
 pnpm dev          # tauri dev: esbuild serves the UI on :1420, Rust rebuilds on change
 pnpm build        # tauri build: release .app and .dmg in target/release/bundle/
-pnpm test         # cargo test --workspace (also regenerates TS bindings)
+pnpm test         # cargo test --workspace (regenerates TS bindings) + pnpm test:ui
 pnpm typecheck    # tsc over ui/src
 pnpm lint         # ESLint, then clippy with -D warnings
 pnpm fmt          # cargo fmt --all
 pnpm check        # fmt check + test + typecheck + lint
 pnpm gen:types    # only regenerate TS bindings from Rust
+pnpm sync:commands  # update build.rs and the capability file from main.rs
 
 # One crate / one test
 cargo test -p vault-core
@@ -34,30 +35,77 @@ cargo install --locked cargo-deny && cargo deny check bans
 
 ## Layout
 
-- `crates/vault-core`: only `VAULT_DIR` and `is_internal` so far. Add the other crates from `docs/Architecture.md` under `crates/` when their feature starts.
-- `crates/app`: the Tauri shell. `tauri.conf.json` holds the window, the CSP and the bundle settings. `capabilities/default.json` holds what the window may call. Commands live in `src/commands.rs`.
-- `ui/`: the React UI. `index.html` is copied to `dist/`, and `src/main.tsx` is bundled there. Tokens are in `src/shared/ui/tokens.css`.
-- Workspace lints in `Cargo.toml` forbid `unsafe` and deny `unwrap_used`, `expect_used` and `panic`. `clippy.toml` allows them in tests.
+- `crates/vault-core`: the vault, with no Tauri and no network. One file per topic:
+  - `vault.rs`: open and read.
+  - `vault_path.rs`: `VaultPath`, the only path type; it can never leave the vault.
+  - `writer.rs`: `VaultWriter`, which does atomic writes and remembers their hashes.
+  - `notes.rs`: save, create, rename, move, delete. Every write checks the expected hash.
+  - `trash.rs`, `front_matter.rs` (line-based YAML edits), `keys.rs` (ULID keys and adopt vault), `watcher.rs` (outside changes), `settings/` (JSON files, unknown keys kept).
+
+  Add the other crates from `docs/Architecture.md` under `crates/` when their feature starts.
+- `crates/app`: the Tauri shell.
+  - `src/commands/`: one file per area. Commands return `CommandResult<T>` (`error.rs`) and run slow file work with `spawn_blocking`.
+  - `state.rs`: the open vault, its watcher, and the asset-protocol scope (the vault folder only).
+  - `events.rs`: event names sent to the UI.
+  - `lifecycle.rs`: closing the window or pressing ⌘Q waits for the UI to save, up to 3 s.
+  - `tauri.conf.json` holds the window, CSP and bundle settings; `capabilities/default.json` is generated.
+- `ui/`: the React UI. `index.html` is copied to `dist/`, and `src/main.tsx` is bundled there.
+  - `src/shell/`: the app frame (sidebar, file tree, flat toolbar, section pages, trash, adopt card). The window uses `titleBarStyle: Overlay`, so the top 52 px of the sidebar and toolbar is a `data-tauri-drag-region` and must stay clear for the window buttons.
+  - `src/editor/`: CodeMirror 6.
+    - `NoteView` loads a note; `useNoteSaver` runs autosave, conflicts and outside changes.
+    - `NoteEditor` wraps the CodeMirror view.
+    - `setup/` holds the extensions: live preview, tables, code blocks, slash menu, front matter, theme.
+  - `src/settings/`: the Settings page.
+  - `src/shared/`:
+    - `ipc` (typed `invoke`/`listen`, generated `bindings/`)
+    - `vault` (open vault, tree, errors, outside-change subscription)
+    - `settings` (settings context with debounced saves)
+    - `commands` (the user-action registry: `CommandId`, `useCommand`; commands whose feature doesn't exist yet stay `enabled: false`)
+    - `ui` (`tokens.css` and shared components)
+    - `lifecycle.ts` (work to finish before quitting)
+- UI tests: `node:test` files next to the code (`*.test.ts`), run by `pnpm test:ui`. They run through Node's type stripping, so the UI allows only erasable TypeScript syntax (no `enum`, `namespace` or parameter properties), and test files add `/// <reference types="node" />`. Keep testable logic in plain `.ts` files (see `textDiff.ts`, `slashItems.ts`, `imagePath.ts`).
+- Workspace lints in `Cargo.toml` forbid `unsafe` and deny `unwrap_used`, `expect_used` and `panic`. `clippy.toml` allows them in tests; integration tests in `tests/` add `#![allow(clippy::unwrap_used)]`.
+- Writes and saving rules:
+  - Saving text that equals the file writes nothing, so untouched notes stay byte for byte.
+  - The first real editor save adds a `key`.
+  - `set_note_property` never adds a key, so a property edit changes exactly one line.
+
+### UI style
+
+Warm editorial look: warm paper and ink neutrals, muted data colours, one accent (rust) action per view, hairline rules instead of cards, and a flat toolbar on the paper. Use **one font family only** (`--font`, the system font). Build hierarchy from size and weight (`--text-*`, `--weight-*`), never from a second typeface. Use `font-variant-numeric: tabular-nums` for numbers. Every colour, size and space comes from `tokens.css`, and every token has a dark-mode value.
 
 ### Adding a command
 
-All four steps are needed, or the call fails at build time or at runtime with a permission error:
-
-1. Write the `#[tauri::command]` in `crates/app/src/commands.rs` and register it in `generate_handler!` in `main.rs`. Argument and return types derive `Serialize`/`Deserialize` and `TS` with `#[ts(export)]`.
-2. Add its name to `AppManifest::commands` in `crates/app/build.rs`.
-3. Grant `allow-<command-name-with-dashes>` in `crates/app/capabilities/default.json`.
-4. Add it to `CommandMap` in `ui/src/shared/ipc/index.ts`, using the generated types. UI code calls `invoke` from there. ESLint blocks `@tauri-apps/api/core` anywhere else.
+1. Write the `#[tauri::command]` in `crates/app/src/commands/<area>.rs` and register it in `generate_handler!` in `main.rs`. Argument and return types derive `Serialize`/`Deserialize` and `TS` with `#[ts(export)]`.
+2. Run `pnpm sync:commands`. It updates `build.rs` and `capabilities/default.json` from `main.rs`; without it the call fails with a permission error.
+3. Run `pnpm test` to regenerate the TypeScript bindings, then add the command to `CommandMap` in `ui/src/shared/ipc/index.ts`. UI code calls `invoke` and `listen` from there. ESLint blocks `@tauri-apps/api/core` and `/event` anywhere else.
 
 ## Specs
 
 The specs are the source of truth. Read them before implementing anything:
 
-- `docs/Notes App Features.md`: features 1 to 10, with requirement IDs (`V-`, `S-`, `E-`, `X-`, `L-`, `B-`, `R-`, `IO-`, `U-`, `SY-`), priorities and "done when" tests.
+- `docs/Features detail.md`: features 1 to 10, with requirement IDs (`V-`, `S-`, `E-`, `X-`, `L-`, `B-`, `R-`, `IO-`, `U-`, `SY-`), priorities and "done when" tests.
 - `docs/Architecture.md`: crate layout, vault layout on disk, example files, index tables, data flow and the sync decision table.
-- `docs/Design principles & rules.md`: the rules review and CI enforce, and the definition of done.
-- `docs/adr/`: decision records. 0002 (Tauri and Rust) replaces 0001 (Electron).
+- `docs/Milestones.md`: build order as tasks `T-00`…`T-44`. When asked to build a task, check its **Needs first** tasks are ticked, build only its steps, make every "Check it works" item pass, then tick its box in the checklist once `pnpm check` passes.
 
 Cite requirement IDs in commits and PRs. **P0** = required for v1, **P1** = in v1 if time allows, **P2** = after v1. Don't build P2 items unless asked.
+
+## Code style
+
+Write code that a junior engineer or an intern can read, change and maintain without help.
+
+- **Readable over short.** Choose clear, beginner-friendly code over clever or compressed code. Use descriptive names, small steps and plain control flow. Name a value instead of nesting calls, and use an early return instead of a deep `if`. Avoid one-liners that pack in several ideas, chained ternaries, and macro or type tricks.
+- **Well structured.** One file, one topic. One function, one job. Group code by feature, keep related code together, and keep public APIs small. Follow the existing folder layout. Don't add new top-level patterns.
+- **Short comments.** A comment is a dev note of one to three lines, never a paragraph that retells the code. Explain *why* (a constraint, a spec ID, a gotcha), not *what*: the names already say what. Doc comments on public items are one or two lines.
+- **Software design principles:**
+  - Single responsibility, and separation of concerns.
+  - KISS: the simplest design that meets the spec.
+  - YAGNI: build only what the current requirement needs.
+  - DRY: remove repetition once the same logic appears three times, not before.
+  - Composition over inheritance.
+  - Depend on traits or interfaces at boundaries (file system, clock, network), so tests can use fakes.
+  - Make invalid states unrepresentable with types: enums and newtypes in Rust, unions in TypeScript.
+  - Fail loudly with typed errors instead of hiding problems.
 
 ## What is being built
 

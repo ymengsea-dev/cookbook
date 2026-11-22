@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-vault-adopt"
+description = "Enables the vault_adopt command without any pre-configured scope."
+commands.allow = ["vault_adopt"]
+
+[[permission]]
+identifier = "deny-vault-adopt"
+description = "Denies the vault_adopt command without any pre-configured scope."
+commands.deny = ["vault_adopt"]

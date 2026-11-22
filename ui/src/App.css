@@ -1,7 +1,0 @@
-.app {
-  padding: var(--space-8);
-}
-
-.app__version {
-  color: var(--color-text-muted);
-}

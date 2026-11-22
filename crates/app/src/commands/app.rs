@@ -1,7 +1,3 @@
-//! Tauri commands. Each one must also be listed in `build.rs`, granted in
-//! `capabilities/default.json` and added to the UI's `CommandMap`.
-//! Types the UI sees derive `TS`; `cargo test` writes them to `ui/src/shared/ipc/bindings/`.
-
 use serde::Serialize;
 use ts_rs::TS;
 

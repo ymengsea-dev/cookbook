@@ -8,3 +8,16 @@ publish.workspace = true
 
 [lints]
 workspace = true
+
+[dependencies]
+blake3 = { workspace = true }
+notify = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+ts-rs = { workspace = true }
+ulid = { workspace = true }
+yaml-rust2 = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }

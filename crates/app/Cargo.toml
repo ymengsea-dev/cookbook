@@ -12,7 +12,9 @@ tauri-build = { workspace = true }
 [dependencies]
 serde = { workspace = true }
 tauri = { workspace = true }
+tauri-plugin-dialog = { workspace = true }
 ts-rs = { workspace = true }
+vault-core = { workspace = true }
 
 [lints]
 workspace = true
