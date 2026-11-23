@@ -5,4 +5,8 @@ import type { VaultSettings } from "./VaultSettings";
 /**
  * Everything the settings screen needs, plus any problems found while loading.
  */
-export type SettingsSnapshot = { vault: VaultSettings, local: LocalSettings, warnings: Array<string>, readOnly: boolean, };
+export type SettingsSnapshot = { vault: VaultSettings, 
+/**
+ * What "Reset to default" restores (U-5).
+ */
+defaults: VaultSettings, local: LocalSettings, warnings: Array<string>, readOnly: boolean, };

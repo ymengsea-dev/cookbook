@@ -2,6 +2,9 @@ import { Channel, convertFileSrc, invoke as tauriInvoke } from '@tauri-apps/api/
 import { listen as tauriListen, type UnlistenFn } from '@tauri-apps/api/event';
 import type { AdoptReport } from './bindings/AdoptReport.ts';
 import type { AppInfo } from './bindings/AppInfo.ts';
+import type { AppearanceSettings } from './bindings/AppearanceSettings.ts';
+import type { FontSettings } from './bindings/FontSettings.ts';
+import type { LayoutSettings } from './bindings/LayoutSettings.ts';
 import type { Book } from './bindings/Book.ts';
 import type { BookImport } from './bindings/BookImport.ts';
 import type { BoardColumn } from './bindings/BoardColumn.ts';
@@ -27,6 +30,12 @@ import type { RunEvent } from './bindings/RunEvent.ts';
 import type { RunOutcome } from './bindings/RunOutcome.ts';
 import type { SearchHit } from './bindings/SearchHit.ts';
 import type { SettingsSnapshot } from './bindings/SettingsSnapshot.ts';
+import type { SidebarSide } from './bindings/SidebarSide.ts';
+import type { Theme } from './bindings/Theme.ts';
+import type { ThemeColors } from './bindings/ThemeColors.ts';
+import type { ThemeFile } from './bindings/ThemeFile.ts';
+import type { ThemeList } from './bindings/ThemeList.ts';
+import type { ThemeMode } from './bindings/ThemeMode.ts';
 import type { SortRule } from './bindings/SortRule.ts';
 import type { TrashEntry } from './bindings/TrashEntry.ts';
 import type { TreeEntry } from './bindings/TreeEntry.ts';
@@ -43,6 +52,15 @@ import type { ZipOptions } from './bindings/ZipOptions.ts';
 
 export type {
   AdoptReport,
+  ThemeList,
+  AppearanceSettings,
+  FontSettings,
+  LayoutSettings,
+  SidebarSide,
+  Theme,
+  ThemeColors,
+  ThemeFile,
+  ThemeMode,
   ImportReport,
   IoOutcome,
   IoProgress,
@@ -123,6 +141,10 @@ interface CommandMap {
   settings_get: { args: NoArgs; result: SettingsSnapshot };
   settings_save_vault: { args: { settings: VaultSettings }; result: null };
   settings_save_local: { args: { settings: LocalSettings }; result: null };
+  theme_list: { args: NoArgs; result: ThemeList };
+  /** Null when the user cancelled the file picker. */
+  theme_import: { args: NoArgs; result: Theme | null };
+  theme_export: { args: { theme: ThemeFile }; result: null };
   code_runners: { args: NoArgs; result: string[] };
   code_run: {
     args: { runId: string; path: string; language: string; code: string; onEvent: Channel<RunEvent> };

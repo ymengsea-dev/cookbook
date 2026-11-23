@@ -3,6 +3,7 @@
 //! - `.vault/settings.json`: vault settings, synced to other devices.
 //! - `.vault/settings.local.json`: this device only, never synced.
 
+mod appearance;
 mod json_file;
 
 use std::ops::RangeInclusive;
@@ -15,6 +16,10 @@ use ts_rs::TS;
 
 use crate::{Vault, VaultError, VaultPath, VaultWriter};
 
+pub use appearance::{
+    AppearanceSettings, Density, FontSettings, LayoutSettings, SidebarSide, ThemeMode,
+    is_hex_colour, is_theme_id,
+};
 pub use json_file::{JsonFile, SCHEMA_VERSION};
 
 const VAULT_FILE: &str = ".vault/settings.json";
@@ -22,11 +27,14 @@ const LOCAL_FILE: &str = ".vault/settings.local.json";
 const AUTOSAVE_MS: RangeInclusive<u32> = 200..=10_000;
 const MAX_KNOWN_VAULTS: usize = 10;
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct VaultSettings {
     pub editor: EditorSettings,
+    pub appearance: AppearanceSettings,
+    pub fonts: FontSettings,
+    pub layout: LayoutSettings,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -61,6 +69,8 @@ pub struct LocalSettings {
 #[ts(export)]
 pub struct SettingsSnapshot {
     pub vault: VaultSettings,
+    /// What "Reset to default" restores (U-5).
+    pub defaults: VaultSettings,
     pub local: LocalSettings,
     pub warnings: Vec<String>,
     pub read_only: bool,
@@ -83,6 +93,9 @@ impl Vault {
             }),
             line_numbers: vault_file.get("/editor/lineNumbers", defaults.line_numbers, |_| true),
         };
+        let appearance = appearance::load_appearance(&mut vault_file);
+        let fonts = appearance::load_fonts(&mut vault_file);
+        let layout = appearance::load_layout(&mut vault_file);
 
         let mut local_file = self.local_settings_file();
         let last_note = local_file.get("/lastNote", None, |_| true);
@@ -90,7 +103,13 @@ impl Vault {
         let mut warnings = vault_file.warnings;
         warnings.append(&mut local_file.warnings);
         SettingsSnapshot {
-            vault: VaultSettings { editor },
+            vault: VaultSettings {
+                editor,
+                appearance,
+                fonts,
+                layout,
+            },
+            defaults: VaultSettings::default(),
             local: LocalSettings { last_note },
             warnings,
             read_only: vault_file.read_only || local_file.read_only,
@@ -102,6 +121,7 @@ impl Vault {
         if !AUTOSAVE_MS.contains(&settings.editor.autosave_ms) {
             return Err(VaultError::InvalidProperty("editor.autosaveMs".to_string()));
         }
+        appearance::check(&settings.appearance, &settings.fonts, &settings.layout)?;
         let mut file = JsonFile::load(&self.root().join(VAULT_FILE), "settings.json");
         file.set(
             "/editor/autosaveMs",
@@ -110,6 +130,12 @@ impl Vault {
         file.set(
             "/editor/lineNumbers",
             Value::from(settings.editor.line_numbers),
+        );
+        appearance::save_look(
+            &mut file,
+            &settings.appearance,
+            &settings.fonts,
+            &settings.layout,
         );
         file.save(self.writer())
     }
@@ -197,12 +223,38 @@ mod tests {
                 autosave_ms: 1500,
                 line_numbers: true,
             },
+            appearance: AppearanceSettings {
+                theme: ThemeMode::Dark,
+                accent: Some("#3f6f7a".to_string()),
+                ..AppearanceSettings::default()
+            },
+            fonts: FontSettings {
+                family: Some("Iowan Old Style".to_string()),
+                ..FontSettings::default()
+            },
+            layout: LayoutSettings {
+                sidebar_side: SidebarSide::Right,
+                ..LayoutSettings::default()
+            },
         };
         vault.save_vault_settings(&settings).unwrap();
 
         assert_eq!(vault.load_settings().vault, settings);
         let text = fs::read_to_string(dir.path().join(VAULT_FILE)).unwrap();
         assert!(text.contains("\"theme\": \"dark\""));
+    }
+
+    #[test]
+    fn a_look_that_could_inject_css_is_refused() {
+        let dir = tempfile::tempdir().unwrap();
+        let vault = Vault::open(dir.path()).unwrap();
+        let mut settings = VaultSettings::default();
+        settings.appearance.accent = Some("red; background: url(x)".to_string());
+        assert!(vault.save_vault_settings(&settings).is_err());
+
+        settings = VaultSettings::default();
+        settings.fonts.family = Some("x\"; color: red".to_string());
+        assert!(vault.save_vault_settings(&settings).is_err());
     }
 
     #[test]

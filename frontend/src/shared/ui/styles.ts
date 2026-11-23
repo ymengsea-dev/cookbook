@@ -20,12 +20,14 @@ export const iconButton = `${iconButtonShape} size-(--control-height)`;
 
 /** A page: content capped and centred, leading with its title. */
 export const page = 'w-full max-w-(--page-max-width) mx-auto pt-2 px-10 pb-8';
+/** A note's page, as wide as the content width setting (U-2). */
+export const notePage = 'w-full max-w-(--content-width) mx-auto pt-2 px-10 pb-8';
 export const pageTitle = 'm-0 text-xl font-regular tracking-tight';
 export const pageSubtitle = 'mt-1 mx-0 mb-6 text-ink-secondary tabular-nums';
 
 /** Rows between hairlines, with a hairline above the first and below the last. */
 export const rows = 'm-0 p-0 border-b border-rule list-none';
-export const rowsRow = 'flex items-center gap-4 py-3 px-0 border-t border-rule';
+export const rowsRow = 'flex items-center gap-4 py-(--row-padding) px-0 border-t border-rule';
 export const rowsMain = 'flex flex-1 flex-col min-w-0';
 export const rowsName = 'truncate';
 export const rowsDetail = 'text-ink-secondary text-sm tabular-nums';

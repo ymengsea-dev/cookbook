@@ -11,10 +11,10 @@ export const editorTheme = EditorView.theme({
   '&': {
     color: 'var(--ink)',
     backgroundColor: 'transparent',
-    fontSize: 'var(--text-md)',
+    fontSize: 'var(--editor-text-size)',
   },
   '&.cm-focused': { outline: 'none' },
-  '.cm-scroller': { fontFamily: 'var(--font)', lineHeight: 'var(--line-height)' },
+  '.cm-scroller': { fontFamily: 'var(--font)', lineHeight: 'var(--editor-line-height)' },
   '.cm-content': { padding: 'var(--space-4) 0 var(--space-14)', caretColor: 'var(--accent)' },
   '.cm-cursor, .cm-dropCursor': { borderLeftColor: 'var(--accent)', borderLeftWidth: '2px' },
   '&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground, .cm-selectionBackground, ::selection': {

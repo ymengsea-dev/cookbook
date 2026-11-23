@@ -96,18 +96,29 @@ Draft the landing page copy first.
 
 The source is `{ "kind": "vault" }`, a folder as above, or `{ "kind": "tag", "tag": "web" }`. Filter values are text, read by the property's type. The "No value" column is `""`. `groupBy` and `columns` at the top level belong to the list view.
 
-**The vault settings file.**
+**The vault settings file.** `appearance.theme` is light, dark or system, and `appearance.colors` names a built-in theme (`paper`, `linen`) or a file in `.vault/themes/`. One font for the whole app: `fonts.family` is null for the system font.
 
 ```json
 {
   "schemaVersion": 1,
-  "appearance": { "theme": "system", "accent": "#4f7cff", "density": "comfortable" },
-  "fonts": { "ui": "system-ui", "editor": "Inter", "code": "JetBrains Mono", "size": 16, "lineHeight": 1.6 },
-  "layout": { "sidebarSide": "left", "sidebarWidth": 260 },
+  "appearance": { "theme": "system", "colors": "paper", "accent": null, "density": "comfortable" },
+  "fonts": { "family": null, "size": 15, "lineHeight": 1.5 },
+  "layout": { "contentWidth": 1040, "sidebarSide": "left", "sidebarWidth": 232, "showSidebar": true, "showStatusBar": true },
   "editor": { "lineNumbers": false, "autosaveMs": 800 },
   "reader": { "theme": "sepia", "zoom": "fit-width", "layout": "scroll" },
   "sync": { "provider": "gdrive", "intervalMinutes": 5 },
   "shortcuts": { "quickOpen": "Mod-p" }
+}
+```
+
+**A theme file** in `.vault/themes/<id>.json`. Colours are `#rrggbb` only; any left out keep Paper's.
+
+```json
+{
+  "schemaVersion": 1,
+  "name": "Night Owl",
+  "light": { "accent": "#3f6f7a" },
+  "dark": { "paper": "#101418", "surface": "#181d22", "ink": "#e8e6e1", "accent": "#7fb0ba" }
 }
 ```
 

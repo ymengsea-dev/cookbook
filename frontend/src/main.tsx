@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { invoke, listen } from './shared/ipc/index.ts';
+import { AppearanceProvider } from './shared/appearance/index.ts';
 import { flushBeforeQuit } from './shared/lifecycle.ts';
 import { SettingsProvider } from './shared/settings/index.ts';
 import { VaultProvider } from './shared/vault/index.ts';
@@ -19,9 +20,11 @@ createRoot(container).render(
   <StrictMode>
     <VaultProvider>
       <SettingsProvider>
-        <ViewsProvider>
-          <AppShell />
-        </ViewsProvider>
+        <AppearanceProvider>
+          <ViewsProvider>
+            <AppShell />
+          </ViewsProvider>
+        </AppearanceProvider>
       </SettingsProvider>
     </VaultProvider>
   </StrictMode>,

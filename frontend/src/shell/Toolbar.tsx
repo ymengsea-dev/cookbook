@@ -2,13 +2,13 @@ import { formatShortcut, useCommand, type CommandId } from '../shared/commands/i
 import { classNames, Icon, styles, type IconName } from '../shared/ui/index.ts';
 
 /** Flat header on the paper. Empty space drags the window, as a native toolbar does. */
-export function Toolbar({ sidebarOpen }: { sidebarOpen: boolean }) {
+export function Toolbar({ sidebarOnLeft }: { sidebarOnLeft: boolean }) {
   return (
     <header
-      // The window buttons sit over the content when the sidebar is hidden.
+      // The window buttons sit over the content unless the sidebar is open on the left.
       className={classNames(
         'flex flex-none items-center gap-1 h-(--toolbar-height) pr-3',
-        sidebarOpen ? 'pl-3' : 'pl-(--traffic-light-inset)',
+        sidebarOnLeft ? 'pl-3' : 'pl-(--traffic-light-inset)',
       )}
       data-tauri-drag-region
     >

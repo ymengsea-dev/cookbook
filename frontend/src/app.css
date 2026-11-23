@@ -15,9 +15,9 @@
   --surface: #fbf8f2;
   --sidebar: #efe8dc;
   --ink: #2a2521;
-  --ink-secondary: #786e64;
+  --ink-secondary: #6f665d;
   --rule: #e3d9c8;
-  --accent: #b0563a;
+  --accent: #a34f35;
   --on-accent: #fffdf9;
 
   /* Data and status colours, in chart order */
@@ -66,6 +66,10 @@
   --peek-width: 360px;
   --board-column-width: 272px;
   --run-output-max-height: 320px;
+  --content-width: 1040px;
+  --row-padding: 12px;
+  --editor-text-size: 15px;
+  --editor-line-height: 1.5;
   --reader-panel-width: 200px;
   --book-cover-width: 160px;
 }

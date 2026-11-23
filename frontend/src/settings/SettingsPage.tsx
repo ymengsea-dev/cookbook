@@ -1,15 +1,15 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState } from 'react';
+import type { VaultSettings } from '../shared/ipc/index.ts';
 import { useCommand } from '../shared/commands/index.ts';
 import { invoke } from '../shared/ipc/index.ts';
 import { useSettings } from '../shared/settings/index.ts';
 import { EmptyState, styles } from '../shared/ui/index.ts';
 import { useVault } from '../shared/vault/index.ts';
+import { AppearanceSettings } from './AppearanceSettings.tsx';
+import { SettingRow, checkbox, groupHeading as heading, select } from './SettingRow.tsx';
+import { LayoutGroup, TextSettings } from './TextAndLayoutSettings.tsx';
 
 const AUTOSAVE_CHOICES_MS = [500, 800, 1500, 3000];
-
-const heading = 'mt-8 mx-0 mb-3 text-lg font-regular';
-const select = 'py-1 px-2 border border-rule rounded-sm bg-surface text-ink [font:inherit]';
-const checkbox = 'size-4 accent-accent';
 
 /**
  * Edits the same JSON files the app reads (S-6). A change here is saved to
@@ -27,8 +27,13 @@ export function SettingsPage() {
     );
   }
 
-  const { editor } = snapshot.vault;
+  const vault = snapshot.vault;
+  const { editor } = vault;
   const locked = snapshot.readOnly;
+  // Each group saves the whole file, with only its own part changed.
+  const update = (changes: Partial<VaultSettings>) => {
+    updateVaultSettings({ ...vault, ...changes });
+  };
   const choices = AUTOSAVE_CHOICES_MS.includes(editor.autosaveMs)
     ? AUTOSAVE_CHOICES_MS
     : [...AUTOSAVE_CHOICES_MS, editor.autosaveMs].sort((a, b) => a - b);
@@ -49,7 +54,7 @@ export function SettingsPage() {
             disabled={locked}
             value={editor.autosaveMs}
             onChange={(event) => {
-              updateVaultSettings({ editor: { ...editor, autosaveMs: Number(event.target.value) } });
+              update({ editor: { ...editor, autosaveMs: Number(event.target.value) } });
             }}
           >
             {choices.map((ms) => (
@@ -66,11 +71,15 @@ export function SettingsPage() {
             disabled={locked}
             checked={editor.lineNumbers}
             onChange={(event) => {
-              updateVaultSettings({ editor: { ...editor, lineNumbers: event.target.checked } });
+              update({ editor: { ...editor, lineNumbers: event.target.checked } });
             }}
           />
         </SettingRow>
       </div>
+
+      <AppearanceSettings value={vault.appearance} defaults={snapshot.defaults.appearance} locked={locked} onChange={(appearance) => { update({ appearance }); }} />
+      <TextSettings value={vault.fonts} defaults={snapshot.defaults.fonts} locked={locked} onChange={(fonts) => { update({ fonts }); }} />
+      <LayoutGroup value={vault.layout} defaults={snapshot.defaults.layout} locked={locked} onChange={(layout) => { update({ layout }); }} />
 
       <h2 className={heading}>Vault</h2>
       <div className={styles.rows}>
@@ -81,18 +90,6 @@ export function SettingsPage() {
 
       <AppVersion />
     </section>
-  );
-}
-
-function SettingRow({ label, detail, children }: { label: string; detail: string; children: ReactNode }) {
-  return (
-    <label className={styles.rowsRow}>
-      <span className={styles.rowsMain}>
-        <span className={styles.rowsName}>{label}</span>
-        <span className={`${styles.rowsDetail} ${styles.selectable}`}>{detail}</span>
-      </span>
-      {children}
-    </label>
   );
 }
 

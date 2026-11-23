@@ -1,5 +1,6 @@
 import { formatShortcut, useCommand } from '../shared/commands/index.ts';
-import { Icon, styles } from '../shared/ui/index.ts';
+import type { SidebarSide } from '../shared/ipc/index.ts';
+import { classNames, Icon, styles } from '../shared/ui/index.ts';
 import { useVault } from '../shared/vault/index.ts';
 import { useViews } from '../views/index.ts';
 import { FileTree } from './FileTree.tsx';
@@ -16,15 +17,21 @@ interface SidebarProps {
   readonly openViewId: string | null;
   readonly onOpenNote: (path: string) => void;
   readonly onOpenView: (id: string) => void;
+  readonly side: SidebarSide;
+  /** The index status and sync line at the bottom (U-3). */
+  readonly showStatusBar: boolean;
 }
 
-export function Sidebar({ current, openPath, openViewId, onOpenNote, onOpenView }: SidebarProps) {
+export function Sidebar({ current, openPath, openViewId, onOpenNote, onOpenView, side, showStatusBar }: SidebarProps) {
   const { info, tree } = useVault();
   const { views } = useViews();
   const pinned = views.filter((view) => view.pinned);
 
   return (
-    <aside className="flex flex-col min-h-0 px-3 pb-3 border-r border-rule bg-sidebar" aria-label="Sidebar">
+    <aside
+      className={classNames('flex flex-col min-h-0 px-3 pb-3 border-rule bg-sidebar', side === 'left' ? 'border-r' : 'border-l')}
+      aria-label="Sidebar"
+    >
       <div className="flex-none h-(--toolbar-height)" data-tauri-drag-region />
       <SearchButton />
       <nav className="flex flex-col flex-1 gap-1 min-h-0 overflow-y-auto pt-4" aria-label="Library">
@@ -59,10 +66,10 @@ export function Sidebar({ current, openPath, openViewId, onOpenNote, onOpenView 
         <SidebarItem section={IMPORT_EXPORT} current={current} />
         <SidebarItem section={TRASH} current={current} />
         <hr className={styles.hairline} />
-        <IndexStatus />
+        {showStatusBar && <IndexStatus />}
         <div className="flex items-center gap-2 pl-2 text-ink-secondary text-sm">
-          <span className="size-2 rounded-[50%] bg-stone" aria-hidden="true" />
-          <span className="flex-1">Sync off</span>
+          {showStatusBar && <span className="size-2 rounded-[50%] bg-stone" aria-hidden="true" />}
+          <span className="flex-1">{showStatusBar ? 'Sync off' : ''}</span>
           <SettingsButton current={current} />
         </div>
       </div>

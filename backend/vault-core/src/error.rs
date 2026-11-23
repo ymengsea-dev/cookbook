@@ -33,6 +33,9 @@ pub enum VaultError {
     #[error("\"{0}\" is not a PDF file.")]
     NotAPdf(String),
 
+    #[error("\"{0}\" is not a theme this app can use: it needs a name and #rrggbb colours.")]
+    BadTheme(String),
+
     #[error("Could not {action} \"{path}\": {source}")]
     Io {
         action: &'static str,

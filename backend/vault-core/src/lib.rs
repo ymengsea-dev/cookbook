@@ -11,6 +11,7 @@ mod library;
 mod notes;
 mod reader;
 mod settings;
+mod themes;
 mod trash;
 mod tree;
 mod vault;
@@ -29,9 +30,11 @@ pub use keys::{AdoptReport, KEY_PROPERTY, SkippedNote, ensure_key, has_key, repl
 pub use library::Book;
 pub use reader::{BookRecord, ReadingPosition};
 pub use settings::{
-    AppSettings, EditorSettings, JsonFile, LocalSettings, SCHEMA_VERSION, SettingsSnapshot,
+    AppSettings, AppearanceSettings, Density, EditorSettings, FontSettings, JsonFile,
+    LayoutSettings, LocalSettings, SCHEMA_VERSION, SettingsSnapshot, SidebarSide, ThemeMode,
     VaultSettings, load_app_settings, remember_vault,
 };
+pub use themes::{THEMES_DIR, Theme, ThemeColors, ThemeFile, ThemeList};
 pub use trash::TrashEntry;
 pub use tree::{TreeEntry, TreeEntryKind, read_tree};
 pub use vault::{NoteFile, Vault};

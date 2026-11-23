@@ -3,7 +3,7 @@ import type { NoteViewHandle } from '../editor/index.ts';
 import { useIoStatus } from '../io/index.ts';
 import { QuickOpen } from '../search/index.ts';
 import { CommandProvider, type CommandTable } from '../shared/commands/index.ts';
-import { invoke, isCommandError, listen, type TreeEntry } from '../shared/ipc/index.ts';
+import { invoke, isCommandError, listen, type SidebarSide, type TreeEntry } from '../shared/ipc/index.ts';
 import { Banner, classNames } from '../shared/ui/index.ts';
 import { useSettings } from '../shared/settings/index.ts';
 import { treeHasPath, useVault } from '../shared/vault/index.ts';
@@ -28,9 +28,13 @@ interface ChosenView {
 
 export function AppShell() {
   const vault = useVault();
-  const { snapshot, rememberLastNote } = useSettings();
+  const { snapshot, rememberLastNote, updateVaultSettings } = useSettings();
   const [section, setSection] = useState<SectionId>('notes');
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  // Without a vault there are no settings to keep the sidebar's state in.
+  const [sidebarWithoutVault, setSidebarWithoutVault] = useState(true);
+  const layout = snapshot?.vault.layout ?? null;
+  const sidebarOpen = layout?.showSidebar ?? sidebarWithoutVault;
+  const sidebarSide = layout?.sidebarSide ?? 'left';
   const [quickOpenVisible, setQuickOpenVisible] = useState(false);
   const [chosen, setChosen] = useState<ChosenNote | null>(null);
   const [chosenView, setChosenView] = useState<ChosenView | null>(null);
@@ -131,7 +135,14 @@ export function AppShell() {
         title: sidebarOpen ? 'Hide Sidebar' : 'Show Sidebar',
         shortcut: 'Mod-\\',
         enabled: true,
-        run: () => { setSidebarOpen((open) => !open); },
+        run: () => {
+          if (snapshot === null) {
+            setSidebarWithoutVault((open) => !open);
+            return;
+          }
+          // Saved in settings.json, so the sidebar stays as you left it (U-3).
+          updateVaultSettings({ ...snapshot.vault, layout: { ...snapshot.vault.layout, showSidebar: !sidebarOpen } });
+        },
       },
       'go.notes': { title: 'All Notes', shortcut: 'Mod-1', enabled: true, run: () => { setSection('notes'); } },
       'go.search': { title: 'Search', shortcut: 'Mod-Shift-f', enabled: true, run: () => { setSection('search'); } },
@@ -159,22 +170,27 @@ export function AppShell() {
         },
       },
     }),
-    [sidebarOpen, chooseVault, showError, runIo, openPath, hasVault, hasNote, section, createNote, deleteNote, viewData, saveView, newNoteInView, showNote],
+    [sidebarOpen, snapshot, updateVaultSettings, chooseVault, showError, runIo, openPath, hasVault, hasNote, section, createNote, deleteNote, viewData, saveView, newNoteInView, showNote],
   );
 
   return (
     <CommandProvider commands={commands}>
-      <div
-        className={classNames(
-          'grid h-full',
-          sidebarOpen ? 'grid-cols-[var(--sidebar-width)_minmax(0,1fr)]' : 'grid-cols-[minmax(0,1fr)]',
-        )}
-      >
+      <div className={classNames('grid h-full', gridColumns(sidebarOpen, sidebarSide))}>
         {sidebarOpen && (
-          <Sidebar current={section} openPath={openPath} openViewId={openViewId} onOpenNote={showNote} onOpenView={showView} />
+          <div className={classNames('grid min-h-0', sidebarSide === 'right' && 'order-last')}>
+            <Sidebar
+              current={section}
+              openPath={openPath}
+              openViewId={openViewId}
+              onOpenNote={showNote}
+              onOpenView={showView}
+              side={sidebarSide}
+              showStatusBar={layout?.showStatusBar ?? true}
+            />
+          </div>
         )}
         <div className="flex flex-col min-w-0 min-h-0">
-          <Toolbar sidebarOpen={sidebarOpen} />
+          <Toolbar sidebarOnLeft={sidebarOpen && sidebarSide === 'left'} />
           {vault.error !== null && <Banner message={vault.error} onDismiss={vault.clearError} />}
           <main className="flex flex-1 flex-col min-h-0 overflow-y-auto">
             <SectionPage
@@ -193,6 +209,11 @@ export function AppShell() {
       {quickOpenVisible && <QuickOpen onOpenNote={showNote} onClose={() => { setQuickOpenVisible(false); }} />}
     </CommandProvider>
   );
+}
+
+function gridColumns(sidebarOpen: boolean, side: SidebarSide): string {
+  if (!sidebarOpen) return 'grid-cols-[minmax(0,1fr)]';
+  return side === 'left' ? 'grid-cols-[var(--sidebar-width)_minmax(0,1fr)]' : 'grid-cols-[minmax(0,1fr)_var(--sidebar-width)]';
 }
 
 /** The note the user picked in this vault, or else last session's note if it still exists. */

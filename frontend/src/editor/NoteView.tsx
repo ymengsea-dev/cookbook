@@ -72,7 +72,7 @@ export function NoteView({ path, onRename, onMove, ref }: NoteViewProps) {
   }
 
   return (
-    <article className={styles.page}>
+    <article className={styles.notePage}>
       <NoteHeader
         path={path}
         status={saver.status}

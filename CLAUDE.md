@@ -42,6 +42,7 @@ cargo install --locked cargo-deny && cargo deny check bans
   - `writer.rs`: `VaultWriter`, which does atomic writes and remembers their hashes.
   - `notes.rs`: save, create, rename, move, delete. Every write checks the expected hash.
   - `trash.rs`, `front_matter.rs` (line-based YAML edits), `keys.rs` (ULID keys and adopt vault), `watcher.rs` (outside changes), `settings/` (JSON files, unknown keys kept).
+  - `settings/appearance.rs` (theme, accent, density, one font, layout; values that could inject CSS are refused), `themes.rs` (theme files in `.vault/themes/`, `#rrggbb` colours only).
   - Books: `books.rs` (import into `books/`, every PDF in the vault, `BookId` fingerprint), `reader.rs` (`.vault/reader.json` details and progress; covers cached in `.vault/cache/covers/`), `library.rs` (the Books list, most recently read first).
 
 - `backend/vault-index`: the SQLite search index in `.vault/index/index.db`, a disposable cache.
@@ -88,6 +89,7 @@ cargo install --locked cargo-deny && cargo deny check bans
     - `vault` (open vault, tree, errors, outside-change subscription)
     - `settings` (settings context with debounced saves)
     - `commands` (the user-action registry: `CommandId`, `useCommand`; commands whose feature doesn't exist yet stay `enabled: false`)
+    - `appearance` (`AppearanceProvider` sets the look as CSS variables on the page; built-in themes in `themes.ts`, which must match `app.css`; WCAG checks in `contrast.ts`)
     - `ui` (shared components, and `styles.ts`: class lists for buttons, pages, rows and cards, plus `classNames`)
     - `lifecycle.ts` (work to finish before quitting)
 - UI tests: `node:test` files (`*.test.ts`) in `frontend/tests/`, in the same folders as the code they test under `frontend/src/`, run by `pnpm test:ui`. They run through Node's type stripping, so the UI allows only erasable TypeScript syntax (no `enum`, `namespace` or parameter properties), and test files add `/// <reference types="node" />`. Keep testable logic in plain `.ts` files (see `textDiff.ts`, `slashItems.ts`, `imagePath.ts`).

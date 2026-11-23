@@ -67,8 +67,8 @@ Each task covers one feature only, and is small enough to build in one session.
 
 **M7 · Make it yours**
 
-- [ ] T-30 Themes and colours
-- [ ] T-31 Fonts and layout
+- [x] T-30 Themes and colours
+- [x] T-31 Fonts and layout
 
 **M8 · Sync with Google Drive**
 
