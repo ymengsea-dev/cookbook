@@ -10,6 +10,7 @@ use std::time::Duration;
 use tauri::{AppHandle, Emitter, Manager, RunEvent, Window, WindowEvent};
 
 use crate::events::BEFORE_QUIT;
+use crate::state::AppState;
 
 const SAVE_TIMEOUT: Duration = Duration::from_secs(3);
 
@@ -54,5 +55,7 @@ fn ask_ui_to_save(app: &AppHandle) {
 
 fn quit(app: &AppHandle) {
     QUITTING.store(true, Ordering::SeqCst);
+    // Running code blocks are in their own process groups, so they would outlive the app.
+    app.state::<AppState>().runs.stop_all();
     app.exit(0);
 }

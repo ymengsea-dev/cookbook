@@ -7,6 +7,7 @@ use vault_index::NoteIndex;
 use crate::error::{CommandError, CommandResult, ErrorCode};
 use crate::events::VAULT_CHANGED;
 use crate::indexing::Indexer;
+use crate::runs::RunRegistry;
 
 /// State shared by all commands. Commands clone the `Arc` so no lock is held during file I/O.
 #[derive(Default)]
@@ -18,11 +19,15 @@ pub struct AppState {
     indexer: Mutex<Option<Arc<Indexer>>>,
     /// Writes `app.json`, which lives outside any vault.
     pub app_writer: VaultWriter,
+    /// Code blocks running now.
+    pub runs: Arc<RunRegistry>,
 }
 
 impl AppState {
     /// Makes `vault` the open vault and starts sending its outside changes to the UI.
     pub fn open_vault(&self, vault: Vault, app: &AppHandle) -> CommandResult<Arc<Vault>> {
+        // Code from the old vault must not keep running in the background.
+        self.runs.stop_all();
         let vault = Arc::new(vault);
         // Lets the editor show images from this vault, and from nowhere else.
         app.asset_protocol_scope()

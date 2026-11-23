@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-code-stop"
+description = "Enables the code_stop command without any pre-configured scope."
+commands.allow = ["code_stop"]
+
+[[permission]]
+identifier = "deny-code-stop"
+description = "Denies the code_stop command without any pre-configured scope."
+commands.deny = ["code_stop"]

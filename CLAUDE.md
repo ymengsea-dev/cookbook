@@ -51,13 +51,18 @@ cargo install --locked cargo-deny && cargo deny check bans
   - `definition.rs` (the view file types), `store.rs` (`.vault/views/<id>.json`; unknown keys kept on save), `values.rs` (type inference, L-4), `filter.rs`, `engine.rs` (`run_view`: source, filter, sort, group), `board.rs` (columns and card order), `actions.rs` (new note, move card, rename column; note writes go through `vault-core`).
   - Views read notes from the index (`NoteIndex::notes`), not from the files.
 
+- `crates/vault-run`: runs code blocks (E-11 to E-16). No Tauri, no network.
+  - `config.rs` (runners and time limit from `settings.local.json`), `locate.rs` (finds the program; a Finder-launched app has a short PATH), `trust.rs` (the first-run warning and untrusted notes), `run.rs` (`start`: runner, then `Consent`, then the program), `program.rs` (own process group, time limit, Stop, streamed output), `output.rs` (UTF-8 across chunks, 256 KB limit).
+  - Only `app` may depend on it (`deny.toml`), so import and sync can never run code.
+
   Add the other crates from `docs/Architecture.md` under `crates/` when their feature starts.
 - `crates/app`: the Tauri shell.
   - `src/commands/`: one file per area. Commands return `CommandResult<T>` (`error.rs`) and run slow file work with `spawn_blocking`.
   - `state.rs`: the open vault, its watcher, and the asset-protocol scope (the vault folder only).
   - `events.rs`: event names sent to the UI.
   - `indexing.rs`: `Indexer`, a background thread that keeps the index in sync and sends `index-progress`, then `index-updated` when anything changed. Every command that writes a note calls `state.request_index_sync()`; open views run again on `index-updated`.
-  - `lifecycle.rs`: closing the window or pressing ⌘Q waits for the UI to save, up to 3 s.
+  - `lifecycle.rs`: closing the window or pressing ⌘Q waits for the UI to save, up to 3 s, and stops running code.
+  - `consent.rs`: the native "not sandboxed" and "trust this note" dialogs, shown from Rust so the UI can't answer them. `runs.rs`: code runs in progress, for `code_stop`.
   - `tauri.conf.json` holds the window, CSP and bundle settings; `capabilities/default.json` is generated.
 - `ui/`: the React UI. `index.html` is copied to `dist/`, and `src/main.tsx` is bundled there.
   - `src/shell/`: the app frame (sidebar, file tree, flat toolbar, section pages, trash, adopt card). The window uses `titleBarStyle: Overlay`, so the top 52 px of the sidebar and toolbar is a `data-tauri-drag-region` and must stay clear for the window buttons.
@@ -65,6 +70,7 @@ cargo install --locked cargo-deny && cargo deny check bans
     - `NoteView` loads a note; `useNoteSaver` runs autosave, conflicts and outside changes.
     - `NoteEditor` wraps the CodeMirror view.
     - `setup/` holds the extensions: live preview, tables, code blocks, slash menu, front matter, theme.
+    - Running code: `setup/codeRun.ts` (Run buttons, ⌘↩, output panels in a state field), `useCodeRunner.ts` (calls `code_run` and streams its `Channel` into the panel). Pure logic in `codeFence.ts` and `runPanel.ts`.
   - `src/search/`: ⌘P quick open (`QuickOpen`, fuzzy titles in `fuzzy.ts`) and the Search page (full text through `search_notes`).
   - `src/views/`: list and board views. `useOpenView` holds the open view and reruns it on `index-updated`; `ViewsProvider` holds the list for the sidebar. Board drag uses pointer events, not HTML drag and drop (Tauri can intercept it). Pure logic in `values.ts`, `grid.ts`, `board.ts`.
   - `src/settings/`: the Settings page.

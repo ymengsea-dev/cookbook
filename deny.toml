@@ -14,4 +14,7 @@ deny = [
   { crate = "isahc", wrappers = ["vault-sync-gdrive"] },
   { crate = "surf", wrappers = ["vault-sync-gdrive"] },
   { crate = "curl", wrappers = ["vault-sync-gdrive"] },
+  # Only the app starts programs, and only when the user presses Run (E-11).
+  # Import and sync can't depend on vault-run, so they can never run code.
+  { crate = "vault-run", wrappers = ["app"] },
 ]

@@ -71,6 +71,7 @@
   --control-height: 28px;
   --peek-width: 360px;
   --board-column-width: 272px;
+  --run-output-max-height: 320px;
 }
 
 @media (prefers-color-scheme: dark) {

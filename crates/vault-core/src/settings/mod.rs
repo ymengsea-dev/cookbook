@@ -7,15 +7,15 @@ mod json_file;
 
 use std::ops::RangeInclusive;
 use std::path::Path;
+use std::sync::PoisonError;
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use ts_rs::TS;
 
 use crate::{Vault, VaultError, VaultPath, VaultWriter};
-use json_file::JsonFile;
 
-pub use json_file::SCHEMA_VERSION;
+pub use json_file::{JsonFile, SCHEMA_VERSION};
 
 const VAULT_FILE: &str = ".vault/settings.json";
 const LOCAL_FILE: &str = ".vault/settings.local.json";
@@ -84,7 +84,7 @@ impl Vault {
             line_numbers: vault_file.get("/editor/lineNumbers", defaults.line_numbers, |_| true),
         };
 
-        let mut local_file = JsonFile::load(&self.root().join(LOCAL_FILE), "settings.local.json");
+        let mut local_file = self.local_settings_file();
         let last_note = local_file.get("/lastNote", None, |_| true);
 
         let mut warnings = vault_file.warnings;
@@ -115,12 +115,27 @@ impl Vault {
     }
 
     pub fn save_local_settings(&self, settings: &LocalSettings) -> Result<(), VaultError> {
-        let mut file = JsonFile::load(&self.root().join(LOCAL_FILE), "settings.local.json");
         let last_note = settings
             .last_note
             .as_ref()
             .map_or(Value::Null, |path| Value::from(path.as_str()));
-        file.set("/lastNote", last_note);
+        self.edit_local_settings(|file| file.set("/lastNote", last_note))
+    }
+
+    /// `settings.local.json` as loaded now, for crates that keep device-only state there.
+    pub fn local_settings_file(&self) -> JsonFile {
+        JsonFile::load(&self.root().join(LOCAL_FILE), "settings.local.json")
+    }
+
+    /// Loads `settings.local.json`, applies `edit` and saves it. Edits run one at a time,
+    /// so the last-note save and `vault-run` never undo each other's change.
+    pub fn edit_local_settings(&self, edit: impl FnOnce(&mut JsonFile)) -> Result<(), VaultError> {
+        let _guard = self
+            .local_settings_lock()
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner);
+        let mut file = self.local_settings_file();
+        edit(&mut file);
         file.save(self.writer())
     }
 }

@@ -77,4 +77,4 @@ More crates (`vault-index`, `vault-views`, `vault-io`, `vault-run`, `vault-sync`
 - Run `pnpm check` before you push.
 - Use pnpm only. Do not add Vite, Vitest, Vue, Rspack, Rsbuild or Rolldown.
 - A new Tauri command needs four steps: the Rust command, `build.rs`, the capability file, and `CommandMap` in `ui/src/shared/ipc`. See [CLAUDE.md](CLAUDE.md#adding-a-command).
-- Only `vault-sync-gdrive` may use an HTTP client. Check with `cargo deny check bans`.
+- Only `vault-sync-gdrive` may use an HTTP client, and only `app` may depend on `vault-run`. Check with `cargo deny check bans`.

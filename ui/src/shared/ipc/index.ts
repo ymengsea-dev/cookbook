@@ -1,4 +1,4 @@
-import { convertFileSrc, invoke as tauriInvoke } from '@tauri-apps/api/core';
+import { Channel, convertFileSrc, invoke as tauriInvoke } from '@tauri-apps/api/core';
 import { listen as tauriListen, type UnlistenFn } from '@tauri-apps/api/event';
 import type { AdoptReport } from './bindings/AdoptReport.ts';
 import type { AppInfo } from './bindings/AppInfo.ts';
@@ -11,10 +11,13 @@ import type { FilterOp } from './bindings/FilterOp.ts';
 import type { IndexProgress } from './bindings/IndexProgress.ts';
 import type { LocalSettings } from './bindings/LocalSettings.ts';
 import type { NoteFile } from './bindings/NoteFile.ts';
+import type { OutputStream } from './bindings/OutputStream.ts';
 import type { PropertyInfo } from './bindings/PropertyInfo.ts';
 import type { PropertyType } from './bindings/PropertyType.ts';
 import type { PropertyValue } from './bindings/PropertyValue.ts';
 import type { RowGroup } from './bindings/RowGroup.ts';
+import type { RunEvent } from './bindings/RunEvent.ts';
+import type { RunOutcome } from './bindings/RunOutcome.ts';
 import type { SearchHit } from './bindings/SearchHit.ts';
 import type { SettingsSnapshot } from './bindings/SettingsSnapshot.ts';
 import type { SortRule } from './bindings/SortRule.ts';
@@ -53,6 +56,9 @@ export type {
   IndexProgress,
   LocalSettings,
   NoteFile,
+  OutputStream,
+  RunEvent,
+  RunOutcome,
   SearchHit,
   SettingsSnapshot,
   TrashEntry,
@@ -102,6 +108,12 @@ interface CommandMap {
   settings_get: { args: NoArgs; result: SettingsSnapshot };
   settings_save_vault: { args: { settings: VaultSettings }; result: null };
   settings_save_local: { args: { settings: LocalSettings }; result: null };
+  code_runners: { args: NoArgs; result: string[] };
+  code_run: {
+    args: { runId: string; path: string; language: string; code: string; onEvent: Channel<RunEvent> };
+    result: null;
+  };
+  code_stop: { args: { runId: string }; result: null };
 }
 
 export type CommandId = keyof CommandMap;
@@ -109,6 +121,13 @@ export type CommandId = keyof CommandMap;
 /** Calls a Rust command. Features use this, never `@tauri-apps/api` directly. */
 export function invoke<K extends CommandId>(id: K, args: CommandMap[K]['args']): Promise<CommandMap[K]['result']> {
   return tauriInvoke<CommandMap[K]['result']>(id, args);
+}
+
+/** A stream of messages from one command call, such as a code run's output. Arrives in order. */
+export function createChannel<T>(onMessage: (message: T) => void): Channel<T> {
+  const channel = new Channel<T>();
+  channel.onmessage = onMessage;
+  return channel;
 }
 
 /** Every event Rust sends to the UI, by name. Names match `crates/app/src/events.rs`. */

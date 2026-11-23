@@ -29,6 +29,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "settings_get",
         "settings_save_vault",
         "settings_save_local",
+        "code_runners",
+        "code_run",
+        "code_stop",
     ]);
     tauri_build::try_build(tauri_build::Attributes::new().app_manifest(manifest))?;
     Ok(())

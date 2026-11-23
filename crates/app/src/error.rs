@@ -2,6 +2,7 @@ use serde::Serialize;
 use ts_rs::TS;
 use vault_core::VaultError;
 use vault_index::IndexError;
+use vault_run::RunError;
 use vault_views::ViewError;
 
 /// The error every command returns. The UI shows `message` and branches on `code`.
@@ -27,6 +28,12 @@ pub enum ErrorCode {
     ReadOnlySettings,
     InvalidView,
     Index,
+    /// No runner is set up for the code block's label.
+    NoRunner,
+    /// The runner's program is not installed.
+    RunnerMissing,
+    /// The user said no to running the code.
+    Declined,
     Io,
 }
 
@@ -82,6 +89,20 @@ impl From<ViewError> for CommandError {
             ViewError::Broken(..) | ViewError::InvalidName(_) => ErrorCode::InvalidView,
             ViewError::NewerVersion(_) => ErrorCode::ReadOnlySettings,
             ViewError::Io(_) => ErrorCode::Io,
+        };
+        Self::new(code, message)
+    }
+}
+
+impl From<RunError> for CommandError {
+    fn from(error: RunError) -> Self {
+        let message = error.to_string();
+        let code = match error {
+            RunError::Vault(vault_error) => return Self::from(vault_error),
+            RunError::UnknownLanguage(_) => ErrorCode::NoRunner,
+            RunError::RunnerMissing { .. } => ErrorCode::RunnerMissing,
+            RunError::Declined => ErrorCode::Declined,
+            RunError::Io { .. } => ErrorCode::Io,
         };
         Self::new(code, message)
     }

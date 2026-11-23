@@ -1,23 +1,30 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useImperativeHandle, useRef, useState, type Ref } from 'react';
 import { invoke } from '../shared/ipc/index.ts';
 import { useSettings } from '../shared/settings/index.ts';
 import { useVault } from '../shared/vault/index.ts';
 import { ConflictBar } from './ConflictBar.tsx';
 import { NoteEditor, type NoteEditorHandle } from './NoteEditor.tsx';
 import { NoteHeader } from './NoteHeader.tsx';
+import { useCodeRunner } from './useCodeRunner.ts';
 import { useNoteSaver } from './useNoteSaver.ts';
 import './editor.css';
 
 const DEFAULT_AUTOSAVE_MS = 800;
 
+/** What the app shell can ask of the open note, for commands such as ⌘↩. */
+export interface NoteViewHandle {
+  runCodeAtCursor: () => void;
+}
+
 interface NoteViewProps {
   readonly path: string;
   readonly onRename: (newName: string) => void;
   readonly onMove: (folder: string | null) => void;
+  readonly ref?: Ref<NoteViewHandle>;
 }
 
-/** One open note: its header, the editor, and autosave. Remounted for each note. */
-export function NoteView({ path, onRename, onMove }: NoteViewProps) {
+/** One open note: its header, the editor, autosave and code runs. Remounted for each note. */
+export function NoteView({ path, onRename, onMove, ref }: NoteViewProps) {
   const { info, showError } = useVault();
   const { snapshot } = useSettings();
   const editor = useRef<NoteEditorHandle>(null);
@@ -26,6 +33,13 @@ export function NoteView({ path, onRename, onMove }: NoteViewProps) {
   const editorSettings = snapshot?.vault.editor;
   const saver = useNoteSaver(path, editor, editorSettings?.autosaveMs ?? DEFAULT_AUTOSAVE_MS);
   const { start } = saver;
+  const codeRunner = useCodeRunner(path);
+
+  useImperativeHandle(ref, () => ({
+    runCodeAtCursor: () => {
+      editor.current?.runCodeAtCursor();
+    },
+  }));
 
   useEffect(() => {
     let cancelled = false;
@@ -74,6 +88,7 @@ export function NoteView({ path, onRename, onMove }: NoteViewProps) {
           initialText={initialText}
           context={{ vaultRoot: info.root, notePath: path }}
           showLineNumbers={editorSettings?.lineNumbers ?? false}
+          codeRunner={codeRunner}
           onEdit={saver.onEdit}
           onBlur={() => { void saver.saveNow(); }}
           onSave={() => { void saver.saveNow(); }}

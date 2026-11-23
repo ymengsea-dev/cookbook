@@ -2,6 +2,7 @@
 //! run `pnpm sync:commands`, and add it to `CommandMap` in `ui/src/shared/ipc`.
 
 pub mod app;
+pub mod code;
 pub mod notes;
 pub mod search;
 pub mod settings;

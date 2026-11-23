@@ -1,4 +1,5 @@
-import { NoteView } from '../editor/index.ts';
+import type { RefObject } from 'react';
+import { NoteView, type NoteViewHandle } from '../editor/index.ts';
 import { SearchPage } from '../search/index.ts';
 import { SettingsPage } from '../settings/index.ts';
 import { EmptyState } from '../shared/ui/index.ts';
@@ -14,14 +15,16 @@ interface SectionPageProps {
   readonly openPath: string | null;
   readonly openView: OpenView;
   readonly actions: NoteActions;
+  /** The open note, so app commands such as ⌘↩ can reach it. */
+  readonly noteRef: RefObject<NoteViewHandle | null>;
   readonly onOpenNote: (path: string) => void;
   readonly onOpenView: (id: string) => void;
 }
 
-export function SectionPage({ section, openPath, openView, actions, onOpenNote, onOpenView }: SectionPageProps) {
+export function SectionPage({ section, openPath, openView, actions, noteRef, onOpenNote, onOpenView }: SectionPageProps) {
   switch (section) {
     case 'notes':
-      return <NotesPage openPath={openPath} actions={actions} />;
+      return <NotesPage openPath={openPath} actions={actions} noteRef={noteRef} />;
     case 'search':
       return <SearchPage onOpenNote={onOpenNote} />;
     case 'books':
@@ -41,7 +44,13 @@ export function SectionPage({ section, openPath, openView, actions, onOpenNote, 
   }
 }
 
-function NotesPage({ openPath, actions }: { openPath: string | null; actions: NoteActions }) {
+interface NotesPageProps {
+  readonly openPath: string | null;
+  readonly actions: NoteActions;
+  readonly noteRef: RefObject<NoteViewHandle | null>;
+}
+
+function NotesPage({ openPath, actions, noteRef }: NotesPageProps) {
   const { info } = useVault();
 
   if (info === null) {
@@ -66,6 +75,7 @@ function NotesPage({ openPath, actions }: { openPath: string | null; actions: No
   return (
     <NoteView
       key={openPath}
+      ref={noteRef}
       path={openPath}
       onRename={(newName) => { void actions.renameNote(newName); }}
       onMove={(folder) => { void actions.moveNote(folder); }}

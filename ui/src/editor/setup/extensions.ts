@@ -15,6 +15,7 @@ import {
 } from '@codemirror/view';
 import { codeBlocks } from './codeBlocks.ts';
 import { codeLanguages } from './codeLanguages.ts';
+import { codeRun, codeRunHost, runCodeAtCursor, type CodeRunHost } from './codeRun.ts';
 import { frontMatter } from './frontMatter.ts';
 import { livePreview } from './livePreview.ts';
 import { noteContext, type NoteContext } from './noteContext.ts';
@@ -29,17 +30,26 @@ export function lineNumbersExtension(show: boolean): Extension {
   return show ? lineNumbers() : [];
 }
 
+/** Holds the code runner, which arrives after the editor opens and changes with the runners. */
+export const codeRunSlot = new Compartment();
+
+export function codeRunExtension(host: CodeRunHost | null): Extension {
+  return host === null ? [] : codeRunHost.of(host);
+}
+
 interface EditorOptions {
   readonly context: NoteContext;
   readonly showLineNumbers: boolean;
+  readonly codeRunner: CodeRunHost | null;
   readonly onSave: () => void;
 }
 
-/** Everything the note editor needs (E-1 to E-4). Order matters: earlier keymaps win. */
-export function editorExtensions({ context, showLineNumbers, onSave }: EditorOptions): Extension[] {
+/** Everything the note editor needs (E-1 to E-4, E-11). Order matters: earlier keymaps win. */
+export function editorExtensions({ context, showLineNumbers, codeRunner, onSave }: EditorOptions): Extension[] {
   return [
     noteContext.of(context),
     lineNumbersSlot.of(lineNumbersExtension(showLineNumbers)),
+    codeRunSlot.of(codeRunExtension(codeRunner)),
     foldGutter(),
     history(),
     drawSelection(),
@@ -54,6 +64,8 @@ export function editorExtensions({ context, showLineNumbers, onSave }: EditorOpt
     search({ top: true }),
     keymap.of([
       { key: 'Mod-s', run: () => { onSave(); return true; } },
+      // Before the default keymap, where ⌘↩ inserts a blank line.
+      { key: 'Mod-Enter', run: runCodeAtCursor },
       indentWithTab,
       ...closeBracketsKeymap,
       ...defaultKeymap,
@@ -64,6 +76,7 @@ export function editorExtensions({ context, showLineNumbers, onSave }: EditorOpt
     markdown({ base: markdownLanguage, codeLanguages, extensions: [frontMatter] }),
     syntaxHighlighting(highlightStyle),
     codeBlocks,
+    codeRun,
     livePreview,
     tablePreview,
     slashMenu,

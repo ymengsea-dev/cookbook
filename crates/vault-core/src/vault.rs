@@ -1,5 +1,6 @@
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::sync::Mutex;
 
 use serde::Serialize;
 use ts_rs::TS;
@@ -23,6 +24,8 @@ pub struct NoteFile {
 pub struct Vault {
     root: PathBuf,
     writer: VaultWriter,
+    /// Held while `settings.local.json` is edited, so two edits never undo each other.
+    local_settings_lock: Mutex<()>,
 }
 
 impl Vault {
@@ -38,6 +41,7 @@ impl Vault {
         Ok(Self {
             root,
             writer: VaultWriter::default(),
+            local_settings_lock: Mutex::new(()),
         })
     }
 
@@ -47,6 +51,10 @@ impl Vault {
 
     pub fn writer(&self) -> &VaultWriter {
         &self.writer
+    }
+
+    pub(crate) fn local_settings_lock(&self) -> &Mutex<()> {
+        &self.local_settings_lock
     }
 
     /// The folder's name, shown as the vault's name.

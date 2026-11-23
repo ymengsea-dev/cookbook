@@ -9,6 +9,7 @@ export type CommandId =
   | 'vault.open'
   | 'note.new'
   | 'note.delete'
+  | 'code.run'
   | 'search.quickOpen'
   | 'sidebar.toggle'
   | 'go.notes'
@@ -36,6 +37,8 @@ const CommandContext = createContext<CommandTable | null>(null);
 export function CommandProvider({ commands, children }: { commands: CommandTable; children: ReactNode }) {
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
+      // The editor already handled it, such as ⌘↩ running a code block.
+      if (event.defaultPrevented) return;
       if (isTextEditingKey(event.key) && isTextField(event.target)) return;
       const match = Object.values(commands).find(
         (command) => command.shortcut !== undefined && matchesShortcut(event, command.shortcut),

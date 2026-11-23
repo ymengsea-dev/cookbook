@@ -58,6 +58,7 @@ dependencies = [
  "ts-rs",
  "vault-core",
  "vault-index",
+ "vault-run",
  "vault-views",
 ]
 
@@ -4327,6 +4328,19 @@ name = "vault-index"
 version = "0.1.0"
 dependencies = [
  "rusqlite",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.21",
+ "ts-rs",
+ "vault-core",
+]
+
+[[package]]
+name = "vault-run"
+version = "0.1.0"
+dependencies = [
+ "rustix",
  "serde",
  "serde_json",
  "tempfile",

@@ -22,8 +22,8 @@ pub use front_matter::{
 pub use hash::ContentHash;
 pub use keys::{AdoptReport, KEY_PROPERTY, SkippedNote, ensure_key, has_key};
 pub use settings::{
-    AppSettings, EditorSettings, LocalSettings, SCHEMA_VERSION, SettingsSnapshot, VaultSettings,
-    load_app_settings, remember_vault,
+    AppSettings, EditorSettings, JsonFile, LocalSettings, SCHEMA_VERSION, SettingsSnapshot,
+    VaultSettings, load_app_settings, remember_vault,
 };
 pub use trash::TrashEntry;
 pub use tree::{TreeEntry, TreeEntryKind, read_tree};

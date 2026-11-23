@@ -49,7 +49,7 @@ Each task covers one feature only, and is small enough to build in one session.
 
 **M4 · Run code**
 
-- [ ] T-21 Code runner (the engine)
+- [x] T-21 Code runner (the engine)
 - [ ] T-22 Run button and output
 - [ ] T-23 Safety warning and trust
 

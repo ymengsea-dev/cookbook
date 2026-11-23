@@ -75,6 +75,63 @@ export const editorTheme = EditorView.theme({
     fontSize: 'var(--text-sm)',
     cursor: 'pointer',
   },
+
+  // Running code (codeRun.ts, runWidgets.ts). Run is the block's one accent action.
+  '.cm-run-button': {
+    float: 'right',
+    marginRight: 'var(--space-2)',
+    padding: '0 var(--space-2)',
+    border: `1px solid ${tint('--accent', 45)}`,
+    borderRadius: 'var(--radius-sm)',
+    backgroundColor: 'var(--surface)',
+    color: 'var(--accent)',
+    fontSize: 'var(--text-sm)',
+    fontWeight: 'var(--weight-medium)',
+    cursor: 'pointer',
+  },
+  '.cm-run-button:disabled': { borderColor: 'var(--rule)', color: 'var(--ink-secondary)', cursor: 'default' },
+  '.cm-run-output': {
+    padding: 'var(--space-2) var(--space-3) var(--space-3) var(--space-10)',
+    borderTop: '1px solid var(--rule)',
+    backgroundColor: tint('--ink', 2),
+    fontSize: 'var(--text-sm)',
+    cursor: 'auto',
+  },
+  '.cm-run-output__bar': {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 'var(--space-3)',
+    color: 'var(--ink-secondary)',
+    fontVariantNumeric: 'tabular-nums',
+  },
+  // The status text always says what happened; the colour only adds emphasis.
+  '.cm-run-output__status--problem': { color: readable('--rust'), fontWeight: 'var(--weight-medium)' },
+  '.cm-run-output__button': {
+    padding: '0 var(--space-2)',
+    border: '1px solid var(--rule)',
+    borderRadius: 'var(--radius-sm)',
+    backgroundColor: 'var(--surface)',
+    color: 'var(--ink-secondary)',
+    fontSize: 'var(--text-sm)',
+    cursor: 'pointer',
+  },
+  '.cm-run-output__text': {
+    maxHeight: 'var(--run-output-max-height)',
+    margin: 'var(--space-2) 0 0',
+    overflow: 'auto',
+    color: 'var(--ink)',
+    fontFamily: 'var(--font)',
+    fontSize: 'var(--text-sm)',
+    lineHeight: 'var(--line-height)',
+    whiteSpace: 'pre-wrap',
+    overflowWrap: 'anywhere',
+    userSelect: 'text',
+  },
+  '.cm-run-output__text:empty': { display: 'none' },
+  // Error output is italic as well as coloured, so it doesn't rely on colour alone.
+  '.cm-run-output__stderr': { color: readable('--rust'), fontStyle: 'italic' },
+  '.cm-run-output__note': { display: 'block', color: 'var(--ink-secondary)', fontStyle: 'italic' },
 });
 
 /** Syntax colours: the muted data palette, never bright system colours. */

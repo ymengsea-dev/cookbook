@@ -1,4 +1,5 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import type { NoteViewHandle } from '../editor/index.ts';
 import { QuickOpen } from '../search/index.ts';
 import { CommandProvider, type CommandTable } from '../shared/commands/index.ts';
 import type { TreeEntry } from '../shared/ipc/index.ts';
@@ -33,6 +34,7 @@ export function AppShell() {
   const [quickOpenVisible, setQuickOpenVisible] = useState(false);
   const [chosen, setChosen] = useState<ChosenNote | null>(null);
   const [chosenView, setChosenView] = useState<ChosenView | null>(null);
+  const noteView = useRef<NoteViewHandle>(null);
 
   const vaultRoot = vault.info?.root ?? null;
   const openPath = chooseOpenPath(chosen, vaultRoot, snapshot?.local.lastNote ?? null, vault.tree);
@@ -69,6 +71,12 @@ export function AppShell() {
       'vault.open': { title: 'Open Folder…', shortcut: 'Mod-o', enabled: true, run: () => { void chooseVault(); } },
       'note.new': { title: 'New Note', shortcut: 'Mod-n', enabled: hasVault, run: () => { void createNote(); } },
       'note.delete': { title: 'Move to Trash', shortcut: 'Mod-Backspace', enabled: hasNote, run: () => { void deleteNote(); } },
+      'code.run': {
+        title: 'Run Code Block',
+        shortcut: 'Mod-Enter',
+        enabled: hasNote && section === 'notes',
+        run: () => { noteView.current?.runCodeAtCursor(); },
+      },
       'search.quickOpen': { title: 'Open Note…', shortcut: 'Mod-p', enabled: hasVault, run: () => { setQuickOpenVisible(true); } },
       'sidebar.toggle': {
         title: sidebarOpen ? 'Hide Sidebar' : 'Show Sidebar',
@@ -101,7 +109,7 @@ export function AppShell() {
         },
       },
     }),
-    [sidebarOpen, chooseVault, hasVault, hasNote, createNote, deleteNote, viewData, saveView, newNoteInView, showNote],
+    [sidebarOpen, chooseVault, hasVault, hasNote, section, createNote, deleteNote, viewData, saveView, newNoteInView, showNote],
   );
 
   return (
@@ -119,6 +127,7 @@ export function AppShell() {
               openPath={openPath}
               openView={openView}
               actions={actions}
+              noteRef={noteView}
               onOpenNote={showNote}
               onOpenView={showView}
             />

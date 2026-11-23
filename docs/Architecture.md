@@ -109,6 +109,25 @@ The source is `{ "kind": "vault" }`, a folder as above, or `{ "kind": "tag", "ta
 }
 ```
 
+**The device-only settings file.** `codeRun` holds the code runners (E-14) and what this Mac has agreed to run (E-15). Leave out `runners` to get Node, Python 3 and shell. A `command` without a `/` is looked up on the PATH, then in `/opt/homebrew/bin` and `/usr/local/bin`. Sync and import add the keys of the notes they bring in to `untrustedNotes`.
+
+```json
+{
+  "schemaVersion": 1,
+  "lastNote": "Projects/Website/Plan.md",
+  "codeRun": {
+    "timeLimitSeconds": 30,
+    "runners": [
+      { "name": "Node", "labels": ["js", "javascript", "node"], "command": "node", "args": [], "extension": "js" },
+      { "name": "Python 3", "labels": ["python", "py", "python3"], "command": "python3", "args": ["-u"], "extension": "py" },
+      { "name": "Shell", "labels": ["sh", "shell", "bash"], "command": "/bin/bash", "args": [], "extension": "sh" }
+    ],
+    "warningAccepted": true,
+    "untrustedNotes": ["01JD8Y3N6Q4F9K2V7R5T0W1XZB"]
+  }
+}
+```
+
 ## Index tables
 
 The index file holds one set of rows per note key. Deleting it loses nothing.

@@ -1,7 +1,8 @@
 import { Annotation, ChangeSet, EditorState } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { useEffect, useImperativeHandle, useRef, type Ref } from 'react';
-import { editorExtensions, lineNumbersExtension, lineNumbersSlot } from './setup/extensions.ts';
+import { runCodeAtCursor, type CodeRunHost } from './setup/codeRun.ts';
+import { codeRunExtension, codeRunSlot, editorExtensions, lineNumbersExtension, lineNumbersSlot } from './setup/extensions.ts';
 import type { NoteContext } from './setup/noteContext.ts';
 import { singleChange } from './textDiff.ts';
 
@@ -17,12 +18,15 @@ export interface NoteEditorHandle {
   finishSave: (sentText: string, savedText: string) => void;
   /** Replaces the text with a version from disk, keeping the cursor where it can. */
   replaceText: (text: string) => void;
+  /** Runs the code block under the cursor, if it has a runner (E-11). */
+  runCodeAtCursor: () => void;
 }
 
 interface NoteEditorProps {
   readonly initialText: string;
   readonly context: NoteContext;
   readonly showLineNumbers: boolean;
+  readonly codeRunner: CodeRunHost | null;
   readonly onEdit: () => void;
   readonly onBlur: () => void;
   readonly onSave: () => void;
@@ -32,7 +36,7 @@ interface NoteEditorProps {
 }
 
 /** CodeMirror 6 inside React. React never re-renders the text; CodeMirror owns it. */
-export function NoteEditor({ initialText, context, showLineNumbers, onEdit, onBlur, onSave, onClose, ref }: NoteEditorProps) {
+export function NoteEditor({ initialText, context, showLineNumbers, codeRunner, onEdit, onBlur, onSave, onClose, ref }: NoteEditorProps) {
   const container = useRef<HTMLDivElement>(null);
   const view = useRef<EditorView | null>(null);
   // Typing since beginSave(), so a save's own changes can be placed around it.
@@ -51,7 +55,7 @@ export function NoteEditor({ initialText, context, showLineNumbers, onEdit, onBl
       state: EditorState.create({
         doc: initialText,
         extensions: [
-          editorExtensions({ context, showLineNumbers, onSave: () => { callbacks.current.onSave(); } }),
+          editorExtensions({ context, showLineNumbers, codeRunner, onSave: () => { callbacks.current.onSave(); } }),
           EditorView.updateListener.of((update) => {
             if (!update.docChanged) return;
             if (typedSinceSave.current !== null) {
@@ -83,6 +87,10 @@ export function NoteEditor({ initialText, context, showLineNumbers, onEdit, onBl
     view.current?.dispatch({ effects: lineNumbersSlot.reconfigure(lineNumbersExtension(showLineNumbers)) });
   }, [showLineNumbers]);
 
+  useEffect(() => {
+    view.current?.dispatch({ effects: codeRunSlot.reconfigure(codeRunExtension(codeRunner)) });
+  }, [codeRunner]);
+
   useImperativeHandle(ref, () => ({
     getText: () => view.current?.state.doc.toString() ?? '',
 
@@ -109,6 +117,10 @@ export function NoteEditor({ initialText, context, showLineNumbers, onEdit, onBl
       if (editor === null) return;
       const change = singleChange(editor.state.doc.toString(), text);
       if (change !== null) editor.dispatch({ changes: change, annotations: fromDisk.of(true) });
+    },
+
+    runCodeAtCursor: () => {
+      if (view.current !== null) runCodeAtCursor(view.current);
     },
   }));
 
