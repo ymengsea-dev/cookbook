@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-book-import"
+description = "Enables the book_import command without any pre-configured scope."
+commands.allow = ["book_import"]
+
+[[permission]]
+identifier = "deny-book-import"
+description = "Denies the book_import command without any pre-configured scope."
+commands.deny = ["book_import"]

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-book-list"
+description = "Enables the book_list command without any pre-configured scope."
+commands.allow = ["book_list"]
+
+[[permission]]
+identifier = "deny-book-list"
+description = "Denies the book_list command without any pre-configured scope."
+commands.deny = ["book_list"]

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-book-save-position"
+description = "Enables the book_save_position command without any pre-configured scope."
+commands.allow = ["book_save_position"]
+
+[[permission]]
+identifier = "deny-book-save-position"
+description = "Denies the book_save_position command without any pre-configured scope."
+commands.deny = ["book_save_position"]

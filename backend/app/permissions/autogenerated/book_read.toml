@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-book-read"
+description = "Enables the book_read command without any pre-configured scope."
+commands.allow = ["book_read"]
+
+[[permission]]
+identifier = "deny-book-read"
+description = "Denies the book_read command without any pre-configured scope."
+commands.deny = ["book_read"]

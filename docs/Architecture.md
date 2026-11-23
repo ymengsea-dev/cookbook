@@ -46,6 +46,7 @@ MyVault/
     reader.json            synced
     trash/                 this device only
     index/index.db         this device only, rebuildable
+    cache/covers/          this device only, rebuildable (book covers)
     sync/manifest.json     this device only
 ```
 
@@ -124,6 +125,17 @@ The source is `{ "kind": "vault" }`, a folder as above, or `{ "kind": "tag", "ta
     ],
     "warningAccepted": true,
     "untrustedNotes": ["01JD8Y3N6Q4F9K2V7R5T0W1XZB"]
+  }
+}
+```
+
+**The reader file.** One entry per book, keyed by a BLAKE3 hash of the PDF's size, first 64 KB and last 64 KB, so renaming or moving the PDF keeps its progress (R-6). `page` counts from 1, and `position` is how far down that page, from 0 to 1. The app sets only these keys and keeps the rest.
+
+```json
+{
+  "schemaVersion": 1,
+  "books": {
+    "9f2c…e41a": { "title": "Deep Work", "pages": 300, "page": 120, "position": 0.25, "lastReadAt": 1763900000000 }
   }
 }
 ```

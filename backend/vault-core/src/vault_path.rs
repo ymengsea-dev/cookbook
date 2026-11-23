@@ -90,6 +90,10 @@ pub(crate) fn is_markdown_name(name: &str) -> bool {
     name.to_lowercase().ends_with(".md")
 }
 
+pub(crate) fn is_pdf_name(name: &str) -> bool {
+    name.to_lowercase().ends_with(".pdf")
+}
+
 fn is_valid_name(part: &str) -> bool {
     !part.is_empty() && part != "." && part != ".." && !part.contains('\\') && !part.contains('\0')
 }

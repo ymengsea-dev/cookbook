@@ -1,8 +1,8 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { NoteViewHandle } from '../editor/index.ts';
 import { QuickOpen } from '../search/index.ts';
 import { CommandProvider, type CommandTable } from '../shared/commands/index.ts';
-import type { TreeEntry } from '../shared/ipc/index.ts';
+import { invoke, listen, type TreeEntry } from '../shared/ipc/index.ts';
 import { Banner, classNames } from '../shared/ui/index.ts';
 import { useSettings } from '../shared/settings/index.ts';
 import { treeHasPath, useVault } from '../shared/vault/index.ts';
@@ -61,7 +61,20 @@ export function AppShell() {
 
   const actions = useNoteActions(openPath, showNote);
   const { createNote, deleteNote } = actions;
-  const { chooseVault } = vault;
+  const { chooseVault, showError } = vault;
+
+  // PDFs imported from the menu or dropped on the window (R-1): show them, and any problems.
+  useEffect(() => {
+    const stopListening = listen('books-imported', (report) => {
+      if (report.problems.length > 0) showError(report.problems.join(' '));
+      if (report.imported.length > 0) setSection('books');
+    });
+    return () => {
+      void stopListening.then((stop) => {
+        stop();
+      });
+    };
+  }, [showError]);
   const hasVault = vaultRoot !== null;
   const hasNote = openPath !== null;
   const { data: viewData, save: saveView, newNote: newNoteInView } = openView;
@@ -75,6 +88,11 @@ export function AppShell() {
         shortcut: 'Mod-Enter',
         enabled: hasNote && section === 'notes',
         run: () => { noteView.current?.runCodeAtCursor(); },
+      },
+      'book.import': {
+        title: 'Import Books…',
+        enabled: hasVault,
+        run: () => { invoke('book_import', {}).catch(showError); },
       },
       'search.quickOpen': { title: 'Open Note…', shortcut: 'Mod-p', enabled: hasVault, run: () => { setQuickOpenVisible(true); } },
       'sidebar.toggle': {
@@ -108,7 +126,7 @@ export function AppShell() {
         },
       },
     }),
-    [sidebarOpen, chooseVault, hasVault, hasNote, section, createNote, deleteNote, viewData, saveView, newNoteInView, showNote],
+    [sidebarOpen, chooseVault, showError, hasVault, hasNote, section, createNote, deleteNote, viewData, saveView, newNoteInView, showNote],
   );
 
   return (

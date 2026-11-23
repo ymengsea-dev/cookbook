@@ -66,6 +66,8 @@
   --peek-width: 360px;
   --board-column-width: 272px;
   --run-output-max-height: 320px;
+  --reader-panel-width: 200px;
+  --book-cover-width: 160px;
 }
 
 @media (prefers-color-scheme: dark) {

@@ -1,3 +1,4 @@
+mod book_drop;
 mod commands;
 mod consent;
 mod error;
@@ -15,7 +16,10 @@ fn main() -> ExitCode {
     let app = tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .manage(AppState::default())
-        .on_window_event(lifecycle::on_window_event)
+        .on_window_event(|window, event| {
+            lifecycle::on_window_event(window, event);
+            book_drop::on_window_event(window, event);
+        })
         .invoke_handler(tauri::generate_handler![
             commands::app::app_info,
             lifecycle::app_quit,
@@ -47,6 +51,13 @@ fn main() -> ExitCode {
             commands::code::code_runners,
             commands::code::code_run,
             commands::code::code_stop,
+            commands::books::book_list,
+            commands::books::book_import,
+            commands::books::book_read,
+            commands::books::book_cover,
+            commands::books::book_save_details,
+            commands::books::book_save_position,
+            commands::books::reader_data,
         ])
         .build(tauri::generate_context!());
 

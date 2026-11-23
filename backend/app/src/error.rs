@@ -23,6 +23,7 @@ pub enum ErrorCode {
     NotFound,
     AlreadyExists,
     NotText,
+    NotAPdf,
     ChangedOnDisk,
     InvalidFrontMatter,
     ReadOnlySettings,
@@ -59,6 +60,7 @@ impl From<VaultError> for CommandError {
             VaultError::NotFound(_) => ErrorCode::NotFound,
             VaultError::AlreadyExists(_) => ErrorCode::AlreadyExists,
             VaultError::NotText(_) => ErrorCode::NotText,
+            VaultError::NotAPdf(_) => ErrorCode::NotAPdf,
             VaultError::ChangedOnDisk(_) => ErrorCode::ChangedOnDisk,
             VaultError::BadFrontMatter(_) | VaultError::InvalidProperty(_) => {
                 ErrorCode::InvalidFrontMatter

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-book-cover"
+description = "Enables the book_cover command without any pre-configured scope."
+commands.allow = ["book_cover"]
+
+[[permission]]
+identifier = "deny-book-cover"
+description = "Denies the book_cover command without any pre-configured scope."
+commands.deny = ["book_cover"]

@@ -2,6 +2,8 @@ import { Channel, convertFileSrc, invoke as tauriInvoke } from '@tauri-apps/api/
 import { listen as tauriListen, type UnlistenFn } from '@tauri-apps/api/event';
 import type { AdoptReport } from './bindings/AdoptReport.ts';
 import type { AppInfo } from './bindings/AppInfo.ts';
+import type { Book } from './bindings/Book.ts';
+import type { BookImport } from './bindings/BookImport.ts';
 import type { BoardColumn } from './bindings/BoardColumn.ts';
 import type { Column } from './bindings/Column.ts';
 import type { CommandError } from './bindings/CommandError.ts';
@@ -15,6 +17,8 @@ import type { OutputStream } from './bindings/OutputStream.ts';
 import type { PropertyInfo } from './bindings/PropertyInfo.ts';
 import type { PropertyType } from './bindings/PropertyType.ts';
 import type { PropertyValue } from './bindings/PropertyValue.ts';
+import type { ReaderDataKind } from './bindings/ReaderDataKind.ts';
+import type { ReadingPosition } from './bindings/ReadingPosition.ts';
 import type { RowGroup } from './bindings/RowGroup.ts';
 import type { RunEvent } from './bindings/RunEvent.ts';
 import type { RunOutcome } from './bindings/RunOutcome.ts';
@@ -35,6 +39,9 @@ import type { ViewSource } from './bindings/ViewSource.ts';
 
 export type {
   AdoptReport,
+  Book,
+  BookImport,
+  ReadingPosition,
   BoardColumn,
   Column,
   Filter,
@@ -114,6 +121,15 @@ interface CommandMap {
     result: null;
   };
   code_stop: { args: { runId: string }; result: null };
+  book_list: { args: NoArgs; result: Book[] };
+  book_import: { args: NoArgs; result: null };
+  /** The PDF's raw bytes. */
+  book_read: { args: { path: string }; result: ArrayBuffer };
+  /** JPEG bytes, empty when no cover is cached yet. */
+  book_cover: { args: { id: string }; result: ArrayBuffer };
+  book_save_details: { args: { id: string; title: string; pages: number; cover: number[] }; result: null };
+  book_save_position: { args: { id: string; position: ReadingPosition }; result: null };
+  reader_data: { args: { kind: ReaderDataKind; name: string }; result: ArrayBuffer };
 }
 
 export type CommandId = keyof CommandMap;
@@ -136,6 +152,7 @@ interface EventMap {
   'before-quit': null;
   'index-progress': IndexProgress;
   'index-updated': null;
+  'books-imported': BookImport;
 }
 
 /** Listens to a Rust event. Call the returned function to stop listening. */

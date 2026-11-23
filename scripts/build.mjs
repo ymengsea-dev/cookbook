@@ -45,9 +45,21 @@ function buildStyles({ watch }) {
   });
 }
 
+// PDF.js runs its parser in a worker, and decodes scanned images with plain-JS decoders
+// (wasm stays off: the CSP has no 'wasm-unsafe-eval'). Both load from dist/pdfjs.
+const PDFJS = 'node_modules/pdfjs-dist';
+const PDFJS_FILES = [
+  ['build/pdf.worker.min.mjs', 'pdf.worker.mjs'],
+  ['wasm/openjpeg_nowasm_fallback.js', 'wasm/openjpeg_nowasm_fallback.js'],
+  ['wasm/jbig2_nowasm_fallback.js', 'wasm/jbig2_nowasm_fallback.js'],
+];
+
 await rm('dist', { recursive: true, force: true });
-await mkdir('dist', { recursive: true });
+await mkdir('dist/pdfjs/wasm', { recursive: true });
 await copyFile('frontend/index.html', 'dist/index.html');
+for (const [from, to] of PDFJS_FILES) {
+  await copyFile(`${PDFJS}/${from}`, `dist/pdfjs/${to}`);
+}
 
 if (serve) {
   buildStyles({ watch: true }).catch((error) => {

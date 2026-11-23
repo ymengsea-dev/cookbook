@@ -10,6 +10,7 @@ export type CommandId =
   | 'note.new'
   | 'note.delete'
   | 'code.run'
+  | 'book.import'
   | 'search.quickOpen'
   | 'sidebar.toggle'
   | 'go.notes'

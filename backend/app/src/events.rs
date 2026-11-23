@@ -11,3 +11,6 @@ pub const INDEX_PROGRESS: &str = "index-progress";
 
 /// No payload. The index changed, so open views should run again.
 pub const INDEX_UPDATED: &str = "index-updated";
+
+/// Payload: `BookImport`. PDFs dropped on the window were copied into `books/`.
+pub const BOOKS_IMPORTED: &str = "books-imported";

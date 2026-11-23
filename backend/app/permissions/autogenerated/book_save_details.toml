@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-book-save-details"
+description = "Enables the book_save_details command without any pre-configured scope."
+commands.allow = ["book_save_details"]
+
+[[permission]]
+identifier = "deny-book-save-details"
+description = "Denies the book_save_details command without any pre-configured scope."
+commands.deny = ["book_save_details"]

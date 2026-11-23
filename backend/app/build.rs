@@ -32,6 +32,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "code_runners",
         "code_run",
         "code_stop",
+        "book_list",
+        "book_import",
+        "book_read",
+        "book_cover",
+        "book_save_details",
+        "book_save_position",
+        "reader_data",
     ]);
     tauri_build::try_build(tauri_build::Attributes::new().app_manifest(manifest))?;
     Ok(())

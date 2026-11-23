@@ -1,5 +1,6 @@
 import type { RefObject } from 'react';
 import { NoteView, type NoteViewHandle } from '../editor/index.ts';
+import { BooksPage } from '../reader/index.ts';
 import { SearchPage } from '../search/index.ts';
 import { SettingsPage } from '../settings/index.ts';
 import { EmptyState } from '../shared/ui/index.ts';
@@ -28,11 +29,7 @@ export function SectionPage({ section, openPath, openView, actions, noteRef, onO
     case 'search':
       return <SearchPage onOpenNote={onOpenNote} />;
     case 'books':
-      return (
-        <EmptyState title="No books yet">
-          Imported PDFs are copied into your vault, and the reader remembers the page where you stopped.
-        </EmptyState>
-      );
+      return <BooksPage />;
     case 'views':
       return <ViewsPage onOpenView={onOpenView} />;
     case 'view':

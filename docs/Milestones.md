@@ -55,9 +55,9 @@ Each task covers one feature only, and is small enough to build in one session.
 
 **M5 · Read books**
 
-- [ ] T-24 Import books
-- [ ] T-25 PDF reader
-- [ ] T-26 Remember the page
+- [x] T-24 Import books
+- [x] T-25 PDF reader
+- [x] T-26 Remember the page
 
 **M6 · Move notes in and out**
 

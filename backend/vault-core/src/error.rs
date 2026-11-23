@@ -30,6 +30,9 @@ pub enum VaultError {
     #[error("{0} was saved by a newer version of the app, so it can't be changed here.")]
     NewerSettings(String),
 
+    #[error("\"{0}\" is not a PDF file.")]
+    NotAPdf(String),
+
     #[error("Could not {action} \"{path}\": {source}")]
     Io {
         action: &'static str,

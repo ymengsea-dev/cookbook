@@ -26,6 +26,8 @@ pub struct Vault {
     writer: VaultWriter,
     /// Held while `settings.local.json` is edited, so two edits never undo each other.
     local_settings_lock: Mutex<()>,
+    /// The same for `reader.json`, which the reader saves every few seconds.
+    reader_lock: Mutex<()>,
 }
 
 impl Vault {
@@ -42,6 +44,7 @@ impl Vault {
             root,
             writer: VaultWriter::default(),
             local_settings_lock: Mutex::new(()),
+            reader_lock: Mutex::new(()),
         })
     }
 
@@ -55,6 +58,10 @@ impl Vault {
 
     pub(crate) fn local_settings_lock(&self) -> &Mutex<()> {
         &self.local_settings_lock
+    }
+
+    pub(crate) fn reader_lock(&self) -> &Mutex<()> {
+        &self.reader_lock
     }
 
     /// The folder's name, shown as the vault's name.

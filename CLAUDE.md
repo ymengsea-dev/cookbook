@@ -42,6 +42,7 @@ cargo install --locked cargo-deny && cargo deny check bans
   - `writer.rs`: `VaultWriter`, which does atomic writes and remembers their hashes.
   - `notes.rs`: save, create, rename, move, delete. Every write checks the expected hash.
   - `trash.rs`, `front_matter.rs` (line-based YAML edits), `keys.rs` (ULID keys and adopt vault), `watcher.rs` (outside changes), `settings/` (JSON files, unknown keys kept).
+  - Books: `books.rs` (import into `books/`, every PDF in the vault, `BookId` fingerprint), `reader.rs` (`.vault/reader.json` details and progress; covers cached in `.vault/cache/covers/`), `library.rs` (the Books list, most recently read first).
 
 - `backend/vault-index`: the SQLite search index in `.vault/index/index.db`, a disposable cache.
   - `extract.rs` (title, headings, tags, properties, body), `schema.rs` (tables and `SCHEMA_VERSION`; a mismatch rebuilds the DB), `index.rs` (`NoteIndex`: sync by modified time and size, then hash), `search.rs` (FTS5 trigram, plus a LIKE scan for terms under 3 characters).
@@ -62,6 +63,7 @@ cargo install --locked cargo-deny && cargo deny check bans
   - `events.rs`: event names sent to the UI.
   - `indexing.rs`: `Indexer`, a background thread that keeps the index in sync and sends `index-progress`, then `index-updated` when anything changed. Every command that writes a note calls `state.request_index_sync()`; open views run again on `index-updated`.
   - `lifecycle.rs`: closing the window or pressing ⌘Q waits for the UI to save, up to 3 s, and stops running code.
+  - `book_drop.rs`: PDFs dropped on the window are imported in Rust, then `books-imported` is sent. `commands/books.rs` also serves PDF.js its bundled cMaps and fonts (`reader_data`, from `bundle.resources`).
   - `consent.rs`: the native "not sandboxed" and "trust this note" dialogs, shown from Rust so the UI can't answer them. `runs.rs`: code runs in progress, for `code_stop`.
   - `tauri.conf.json` holds the window, CSP and bundle settings; `capabilities/default.json` is generated.
 - `frontend/`: the React UI. `index.html` is copied to `dist/`, `src/main.tsx` is bundled there, and Tailwind builds `src/app.css` into `dist/renderer.css`.
@@ -73,6 +75,7 @@ cargo install --locked cargo-deny && cargo deny check bans
     - `run/` holds running code: `codeRun.ts` (Run buttons, ⌘↩, output panels in a state field), `runWidgets.ts`, `useCodeRunner.ts` (calls `code_run` and streams its `Channel` into the panel). Pure logic in `codeFence.ts` and `runPanel.ts`.
   - `src/search/`: ⌘P quick open (`QuickOpen`, fuzzy titles in `fuzzy.ts`) and the Search page (full text through `search_notes`).
   - `src/views/`: list and board views. `useOpenView` holds the open view and reruns it on `index-updated`; `ViewsProvider` holds the list for the sidebar. Board drag uses pointer events, not HTML drag and drop (Tauri can intercept it). Pure logic in `values.ts`, `grid.ts`, `board.ts`. Class lists the list, board and settings share are in `styles.ts`.
+  - `src/reader/`: the Books page and the PDF reader (PDF.js). `pdf.ts` opens books with worker fetch and wasm off, so nothing needs `fetch` or `wasm-unsafe-eval`; `scripts/build.mjs` copies the worker and the plain-JS image decoders to `dist/pdfjs/`. `PageStack` draws only on-screen pages; `useReadingPosition` saves progress. Pure logic in `readerLayout.ts` and `bookText.ts`.
   - `src/settings/`: the Settings page.
   - `src/shared/`:
     - `ipc` (typed `invoke`/`listen`, generated `bindings/`)
@@ -143,7 +146,7 @@ A local-first notes app for macOS for one person. It uses Tauri 2, a Rust core a
 - **Least privilege:** capabilities grant only the commands and plugins in use, and file-system access covers only the vault folder. Never widen the CSP or a capability to make a feature work.
 - **UI features are vertical slices:** `editor`, `views`, `reader`, `search`, `sync` and `settings`. A feature imports only from `shared/ui`, `shared/commands` and another feature's public `index.ts`. Code moves to `shared` only when a third feature needs it.
 - **Every user action is a command in one registry** (`shared/commands`), called by id from menus, shortcuts, the palette and buttons. A button without a registered command fails review.
-- **Synced vs device-only:** `.vault/settings.json`, views, themes, snippets and `reader.json` sync. `.vault/settings.local.json` (window state, code runners), trash, the index and the manifest never sync. App-level settings are in `app.json` in the macOS app-support folder.
+- **Synced vs device-only:** `.vault/settings.json`, views, themes, snippets and `reader.json` sync. `.vault/settings.local.json` (window state, code runners), trash, the index, `.vault/cache/` and the manifest never sync. App-level settings are in `app.json` in the macOS app-support folder.
 - **Every stored format has a `schemaVersion`.** Migrations only go forward, run on a backup copy and need a fixture per version. A file from a newer version opens read-only.
 
 ## Code-running safety (`vault-run`)
