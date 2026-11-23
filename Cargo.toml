@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/*"]
+members = ["backend/*"]
 
 [workspace.package]
 version = "0.1.0"
@@ -22,10 +22,10 @@ tempfile = "3.27.0"
 thiserror = "2.0.21"
 ts-rs = { version = "12.0.1", features = ["no-serde-warnings"] }
 ulid = "3.0.0"
-vault-core = { path = "crates/vault-core" }
-vault-index = { path = "crates/vault-index" }
-vault-run = { path = "crates/vault-run" }
-vault-views = { path = "crates/vault-views" }
+vault-core = { path = "backend/vault-core" }
+vault-index = { path = "backend/vault-index" }
+vault-run = { path = "backend/vault-run" }
+vault-views = { path = "backend/vault-views" }
 yaml-rust2 = "0.13.2"
 
 [workspace.lints.rust]

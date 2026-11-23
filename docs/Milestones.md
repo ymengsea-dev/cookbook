@@ -227,7 +227,7 @@ Each task covers one feature only, and is small enough to build in one session.
 
 **Steps:**
 
-1. Add CodeMirror 6 in `ui/src/editor/`. Open notes from the file tree, and save with ⌘S through `VaultWriter`.
+1. Add CodeMirror 6 in `frontend/src/editor/`. Open notes from the file tree, and save with ⌘S through `VaultWriter`.
 2. Code blocks: syntax colours from the fence label, line numbers, bracket matching, folding and a copy button.
 3. Editing: undo/redo, multiple cursors, find and replace (with regex), move lines, Tab to indent.
 4. Test IME typing in Khmer, Chinese, Japanese and Thai inside the app window.
@@ -526,7 +526,7 @@ Each task covers one feature only, and is small enough to build in one session.
 
 **Steps:**
 
-1. Use PDF.js in `ui/src/reader/`, with scroll or one-page-at-a-time layouts, fit width, fit page and zoom.
+1. Use PDF.js in `frontend/src/reader/`, with scroll or one-page-at-a-time layouts, fit width, fit page and zoom.
 2. Draw only the visible pages.
 3. Add a table of contents (from the PDF's outline), a thumbnail strip and jump to page.
 

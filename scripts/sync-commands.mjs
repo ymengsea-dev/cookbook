@@ -2,9 +2,9 @@
 // Run after adding a command: `pnpm sync:commands`.
 import { readFile, writeFile } from 'node:fs/promises';
 
-const MAIN = 'crates/app/src/main.rs';
-const BUILD = 'crates/app/build.rs';
-const CAPABILITY = 'crates/app/capabilities/default.json';
+const MAIN = 'backend/app/src/main.rs';
+const BUILD = 'backend/app/build.rs';
+const CAPABILITY = 'backend/app/capabilities/default.json';
 // Permissions that are not app commands: window dragging and listening to Rust events.
 const EXTRA_PERMISSIONS = [
   'core:window:allow-start-dragging',

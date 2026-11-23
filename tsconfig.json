@@ -22,5 +22,5 @@
     "noEmit": true,
     "skipLibCheck": true
   },
-  "include": ["ui/src"]
+  "include": ["frontend/src", "frontend/tests"]
 }

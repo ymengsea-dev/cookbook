@@ -1,3 +1,5 @@
 # Packages allowed to run install scripts. esbuild installs its native binary.
+# @parcel/watcher (used by the Tailwind CLI's --watch) ships prebuilt binaries, so its script is skipped.
 allowBuilds:
   esbuild: true
+  '@parcel/watcher': false

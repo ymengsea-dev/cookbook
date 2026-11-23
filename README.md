@@ -54,17 +54,27 @@ cargo test -p vault-core notes_are_not_internal
 ## Project layout
 
 ```text
-crates/
+backend/
   app/          Tauri shell: commands, capabilities, window and bundle config
   vault-core/   Notes, files and atomic writes (no Tauri, no network)
-ui/
+  vault-index/  SQLite full-text search index (a disposable cache)
+  vault-views/  Saved list and board views
+  vault-run/    Runs code blocks with a time limit
+frontend/
   index.html
-  src/          React UI; shared/ipc holds the typed command wrapper and generated bindings
-scripts/        esbuild build script for the UI
+  src/
+    shell/      App frame: sidebar, file tree, toolbar, trash
+    editor/     CodeMirror editor; setup/ holds extensions, run/ runs code blocks
+    search/     Quick open and the Search page
+    views/      List and board views
+    settings/   Settings page
+    shared/     ipc (typed commands, generated bindings), vault, settings, commands, ui
+  tests/        UI tests (node:test), same folders as src/
+scripts/        UI build (esbuild and the Tailwind CLI) and command sync
 docs/           Feature specs and architecture
 ```
 
-More crates (`vault-index`, `vault-views`, `vault-io`, `vault-run`, `vault-sync`, `vault-sync-gdrive`) are added as their features start. See [Architecture](docs/Architecture.md).
+More crates (`vault-io`, `vault-sync`, `vault-sync-gdrive`) are added as their features start. See [Architecture](docs/Architecture.md).
 
 ## Documentation
 
@@ -76,5 +86,5 @@ More crates (`vault-index`, `vault-views`, `vault-io`, `vault-run`, `vault-sync`
 - Read the specs before you implement a feature, and cite the requirement IDs (for example `V-4`) in commits and pull requests.
 - Run `pnpm check` before you push.
 - Use pnpm only. Do not add Vite, Vitest, Vue, Rspack, Rsbuild or Rolldown.
-- A new Tauri command needs four steps: the Rust command, `build.rs`, the capability file, and `CommandMap` in `ui/src/shared/ipc`. See [CLAUDE.md](CLAUDE.md#adding-a-command).
+- A new Tauri command needs four steps: the Rust command, `build.rs`, the capability file, and `CommandMap` in `frontend/src/shared/ipc`. See [CLAUDE.md](CLAUDE.md#adding-a-command).
 - Only `vault-sync-gdrive` may use an HTTP client, and only `app` may depend on `vault-run`. Check with `cargo deny check bans`.

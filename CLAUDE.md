@@ -11,7 +11,7 @@ pnpm install
 pnpm dev          # tauri dev: esbuild serves the UI on :1420, Rust rebuilds on change
 pnpm build        # tauri build: release .app and .dmg in target/release/bundle/
 pnpm test         # cargo test --workspace (regenerates TS bindings) + pnpm test:ui
-pnpm typecheck    # tsc over ui/src
+pnpm typecheck    # tsc over frontend/src
 pnpm lint         # ESLint, then clippy with -D warnings
 pnpm fmt          # cargo fmt --all
 pnpm check        # fmt check + test + typecheck + lint
@@ -29,34 +29,34 @@ cargo install --locked cargo-deny && cargo deny check bans
 
 ## Tooling constraints
 
-- Do not add Vite, Vitest, Vue, Rspack/Rsbuild, Rolldown or other Chinese-origin tooling (owner's requirement). The UI bundler is esbuild (`scripts/build.mjs`), and the UI is React. Tauri's templates assume Vite. Do not run `create-tauri-app` or copy its Vite config.
+- Do not add Vite, Vitest, Vue, Rspack/Rsbuild, Rolldown or other Chinese-origin tooling (owner's requirement). The UI bundler is esbuild (`scripts/build.mjs`), styles are built by the Tailwind v4 CLI from the same script (no PostCSS), and the UI is React. Tauri's templates assume Vite. Do not run `create-tauri-app` or copy its Vite config.
 - TypeScript is pinned to `~6.0` because `typescript-eslint` does not support 7.x yet.
 - `rust-version` is 1.90. Resolver v3 picks crate versions that fit it, so raise it when a dependency needs a newer Rust.
-- `tauri-specta` is still a release candidate for Tauri 2, so IPC types are generated with `ts-rs`. `#[ts(export)]` types are written to `ui/src/shared/ipc/bindings/` (set in `.cargo/config.toml`) whenever `cargo test` runs. Commit the generated files.
+- `tauri-specta` is still a release candidate for Tauri 2, so IPC types are generated with `ts-rs`. `#[ts(export)]` types are written to `frontend/src/shared/ipc/bindings/` (set in `.cargo/config.toml`) whenever `cargo test` runs. Commit the generated files.
 
 ## Layout
 
-- `crates/vault-core`: the vault, with no Tauri and no network. One file per topic:
+- `backend/vault-core`: the vault, with no Tauri and no network. One file per topic:
   - `vault.rs`: open and read.
   - `vault_path.rs`: `VaultPath`, the only path type; it can never leave the vault.
   - `writer.rs`: `VaultWriter`, which does atomic writes and remembers their hashes.
   - `notes.rs`: save, create, rename, move, delete. Every write checks the expected hash.
   - `trash.rs`, `front_matter.rs` (line-based YAML edits), `keys.rs` (ULID keys and adopt vault), `watcher.rs` (outside changes), `settings/` (JSON files, unknown keys kept).
 
-- `crates/vault-index`: the SQLite search index in `.vault/index/index.db`, a disposable cache.
+- `backend/vault-index`: the SQLite search index in `.vault/index/index.db`, a disposable cache.
   - `extract.rs` (title, headings, tags, properties, body), `schema.rs` (tables and `SCHEMA_VERSION`; a mismatch rebuilds the DB), `index.rs` (`NoteIndex`: sync by modified time and size, then hash), `search.rs` (FTS5 trigram, plus a LIKE scan for terms under 3 characters).
   - `examples/bench.rs` is `pnpm bench`.
 
-- `crates/vault-views`: saved list and board views.
+- `backend/vault-views`: saved list and board views.
   - `definition.rs` (the view file types), `store.rs` (`.vault/views/<id>.json`; unknown keys kept on save), `values.rs` (type inference, L-4), `filter.rs`, `engine.rs` (`run_view`: source, filter, sort, group), `board.rs` (columns and card order), `actions.rs` (new note, move card, rename column; note writes go through `vault-core`).
   - Views read notes from the index (`NoteIndex::notes`), not from the files.
 
-- `crates/vault-run`: runs code blocks (E-11 to E-16). No Tauri, no network.
+- `backend/vault-run`: runs code blocks (E-11 to E-16). No Tauri, no network.
   - `config.rs` (runners and time limit from `settings.local.json`), `locate.rs` (finds the program; a Finder-launched app has a short PATH), `trust.rs` (the first-run warning and untrusted notes), `run.rs` (`start`: runner, then `Consent`, then the program), `program.rs` (own process group, time limit, Stop, streamed output), `output.rs` (UTF-8 across chunks, 256 KB limit).
   - Only `app` may depend on it (`deny.toml`), so import and sync can never run code.
 
-  Add the other crates from `docs/Architecture.md` under `crates/` when their feature starts.
-- `crates/app`: the Tauri shell.
+  Add the other crates from `docs/Architecture.md` under `backend/` when their feature starts.
+- `backend/app`: the Tauri shell.
   - `src/commands/`: one file per area. Commands return `CommandResult<T>` (`error.rs`) and run slow file work with `spawn_blocking`.
   - `state.rs`: the open vault, its watcher, and the asset-protocol scope (the vault folder only).
   - `events.rs`: event names sent to the UI.
@@ -64,24 +64,24 @@ cargo install --locked cargo-deny && cargo deny check bans
   - `lifecycle.rs`: closing the window or pressing ⌘Q waits for the UI to save, up to 3 s, and stops running code.
   - `consent.rs`: the native "not sandboxed" and "trust this note" dialogs, shown from Rust so the UI can't answer them. `runs.rs`: code runs in progress, for `code_stop`.
   - `tauri.conf.json` holds the window, CSP and bundle settings; `capabilities/default.json` is generated.
-- `ui/`: the React UI. `index.html` is copied to `dist/`, and `src/main.tsx` is bundled there.
+- `frontend/`: the React UI. `index.html` is copied to `dist/`, `src/main.tsx` is bundled there, and Tailwind builds `src/app.css` into `dist/renderer.css`.
   - `src/shell/`: the app frame (sidebar, file tree, flat toolbar, section pages, trash, adopt card). The window uses `titleBarStyle: Overlay`, so the top 52 px of the sidebar and toolbar is a `data-tauri-drag-region` and must stay clear for the window buttons.
   - `src/editor/`: CodeMirror 6.
     - `NoteView` loads a note; `useNoteSaver` runs autosave, conflicts and outside changes.
     - `NoteEditor` wraps the CodeMirror view.
     - `setup/` holds the extensions: live preview, tables, code blocks, slash menu, front matter, theme.
-    - Running code: `setup/codeRun.ts` (Run buttons, ⌘↩, output panels in a state field), `useCodeRunner.ts` (calls `code_run` and streams its `Channel` into the panel). Pure logic in `codeFence.ts` and `runPanel.ts`.
+    - `run/` holds running code: `codeRun.ts` (Run buttons, ⌘↩, output panels in a state field), `runWidgets.ts`, `useCodeRunner.ts` (calls `code_run` and streams its `Channel` into the panel). Pure logic in `codeFence.ts` and `runPanel.ts`.
   - `src/search/`: ⌘P quick open (`QuickOpen`, fuzzy titles in `fuzzy.ts`) and the Search page (full text through `search_notes`).
-  - `src/views/`: list and board views. `useOpenView` holds the open view and reruns it on `index-updated`; `ViewsProvider` holds the list for the sidebar. Board drag uses pointer events, not HTML drag and drop (Tauri can intercept it). Pure logic in `values.ts`, `grid.ts`, `board.ts`.
+  - `src/views/`: list and board views. `useOpenView` holds the open view and reruns it on `index-updated`; `ViewsProvider` holds the list for the sidebar. Board drag uses pointer events, not HTML drag and drop (Tauri can intercept it). Pure logic in `values.ts`, `grid.ts`, `board.ts`. Class lists the list, board and settings share are in `styles.ts`.
   - `src/settings/`: the Settings page.
   - `src/shared/`:
     - `ipc` (typed `invoke`/`listen`, generated `bindings/`)
     - `vault` (open vault, tree, errors, outside-change subscription)
     - `settings` (settings context with debounced saves)
     - `commands` (the user-action registry: `CommandId`, `useCommand`; commands whose feature doesn't exist yet stay `enabled: false`)
-    - `ui` (`tokens.css` and shared components)
+    - `ui` (shared components, and `styles.ts`: class lists for buttons, pages, rows and cards, plus `classNames`)
     - `lifecycle.ts` (work to finish before quitting)
-- UI tests: `node:test` files next to the code (`*.test.ts`), run by `pnpm test:ui`. They run through Node's type stripping, so the UI allows only erasable TypeScript syntax (no `enum`, `namespace` or parameter properties), and test files add `/// <reference types="node" />`. Keep testable logic in plain `.ts` files (see `textDiff.ts`, `slashItems.ts`, `imagePath.ts`).
+- UI tests: `node:test` files (`*.test.ts`) in `frontend/tests/`, in the same folders as the code they test under `frontend/src/`, run by `pnpm test:ui`. They run through Node's type stripping, so the UI allows only erasable TypeScript syntax (no `enum`, `namespace` or parameter properties), and test files add `/// <reference types="node" />`. Keep testable logic in plain `.ts` files (see `textDiff.ts`, `slashItems.ts`, `imagePath.ts`).
 - Workspace lints in `Cargo.toml` forbid `unsafe` and deny `unwrap_used`, `expect_used` and `panic`. `clippy.toml` allows them in tests; integration tests in `tests/` add `#![allow(clippy::unwrap_used)]`.
 - Writes and saving rules:
   - Saving text that equals the file writes nothing, so untouched notes stay byte for byte.
@@ -90,13 +90,15 @@ cargo install --locked cargo-deny && cargo deny check bans
 
 ### UI style
 
-Warm editorial look: warm paper and ink neutrals, muted data colours, one accent (rust) action per view, hairline rules instead of cards, and a flat toolbar on the paper. Use **one font family only** (`--font`, the system font). Build hierarchy from size and weight (`--text-*`, `--weight-*`), never from a second typeface. Use `font-variant-numeric: tabular-nums` for numbers. Every colour, size and space comes from `tokens.css`, and every token has a dark-mode value.
+Warm editorial look: warm paper and ink neutrals, muted data colours, one accent (rust) action per view, hairline rules instead of cards, and a flat toolbar on the paper. Use **one font family only** (`--font`, the system font). Build hierarchy from size and weight (`--text-*`, `--weight-*`), never from a second typeface. Use `tabular-nums` for numbers. Every colour, size and space comes from a token in `frontend/src/app.css`, and every colour token has a dark-mode value.
+
+Styling uses Tailwind utility classes in `className`; `frontend/src/app.css` is the only stylesheet. It holds the tokens on `:root` (plain CSS variables, also read by the CodeMirror theme in `editor/setup/theme.ts`), maps them to Tailwind names in `@theme` (`bg-paper`, `text-ink-secondary`, `text-sm`, `font-medium`, `rounded-md`), and removes Tailwind's default scales, so a utility exists only for a token. The spacing scale is the 4 px grid (`p-4` is `--space-4`). Layout sizes use the variable syntax, such as `w-(--sidebar-width)`. Preflight is left out: styles build on browser defaults. When a class list repeats, put it in a `styles.ts` constant rather than `@apply`, and never put two utilities for the same property in one list. CodeMirror's own elements are styled in `theme.ts`, not with classes.
 
 ### Adding a command
 
-1. Write the `#[tauri::command]` in `crates/app/src/commands/<area>.rs` and register it in `generate_handler!` in `main.rs`. Argument and return types derive `Serialize`/`Deserialize` and `TS` with `#[ts(export)]`.
+1. Write the `#[tauri::command]` in `backend/app/src/commands/<area>.rs` and register it in `generate_handler!` in `main.rs`. Argument and return types derive `Serialize`/`Deserialize` and `TS` with `#[ts(export)]`.
 2. Run `pnpm sync:commands`. It updates `build.rs` and `capabilities/default.json` from `main.rs`; without it the call fails with a permission error.
-3. Run `pnpm test` to regenerate the TypeScript bindings, then add the command to `CommandMap` in `ui/src/shared/ipc/index.ts`. UI code calls `invoke` and `listen` from there. ESLint blocks `@tauri-apps/api/core` and `/event` anywhere else.
+3. Run `pnpm test` to regenerate the TypeScript bindings, then add the command to `CommandMap` in `frontend/src/shared/ipc/index.ts`. UI code calls `invoke` and `listen` from there. ESLint blocks `@tauri-apps/api/core` and `/event` anywhere else.
 
 ## Specs
 
@@ -152,9 +154,9 @@ Code blocks run with the user's rights and no sandbox. Runs start only when the 
 
 - Rust: no `unwrap()`, `expect()` or `panic!` outside tests. Use one typed error enum per crate, and never panic on user data.
 - TypeScript: `strict`, no `any`. UI feature boundaries (`eslint-plugin-boundaries` or `dependency-cruiser`) are not set up yet.
-- Styling: no hard-coded colour, spacing or font, only CSS variable design tokens, on a 4 px spacing grid (Stylelint, not set up yet). Colour never carries meaning alone, and components need `axe` checks.
+- Styling: no hard-coded colour, spacing or font, only token utilities on the 4 px spacing grid. Arbitrary values (`[...]`) only wrap tokens, such as `bg-[color-mix(in_srgb,var(--rust)_12%,var(--paper))]`. Colour never carries meaning alone, and components need `axe` checks.
 - Functions run about 40 lines and files about 300. Going over needs a reason.
 - Slow work (scanning, indexing, import, sync, code runs) runs on background threads, can be cancelled and reports progress. Command handlers never block: use `async` commands or `tauri::async_runtime::spawn_blocking`. Lists over about 200 rows are virtualized.
 - Text input and search must handle no-space scripts (Khmer, Chinese, Japanese, Thai). The FTS5 index uses a trigram tokenizer.
 - No telemetry. Drive scope is `drive.file`, and OAuth tokens live only in the macOS Keychain.
-- A significant decision gets a one-page record in `docs/adr/`. A stored-format change needs a schema bump, a migration and a decision record.
+- A stored-format change needs a schema bump and a migration.

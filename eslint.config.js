@@ -10,7 +10,7 @@ const networkGlobals = ['fetch', 'XMLHttpRequest', 'WebSocket', 'EventSource'].m
 }));
 
 export default defineConfig(
-  { ignores: ['dist/**', 'target/**', 'crates/**', '**/node_modules/**', 'ui/src/shared/ipc/bindings/**'] },
+  { ignores: ['dist/**', 'target/**', 'backend/**', '**/node_modules/**', 'frontend/src/shared/ipc/bindings/**'] },
 
   js.configs.recommended,
   tseslint.configs.strictTypeChecked,
@@ -24,19 +24,19 @@ export default defineConfig(
         'error',
         {
           paths: [
-            { name: '@tauri-apps/api/core', message: 'Use ui/src/shared/ipc instead.' },
-            { name: '@tauri-apps/api/event', message: 'Use listen from ui/src/shared/ipc instead.' },
+            { name: '@tauri-apps/api/core', message: 'Use frontend/src/shared/ipc instead.' },
+            { name: '@tauri-apps/api/event', message: 'Use listen from frontend/src/shared/ipc instead.' },
           ],
         },
       ],
     },
   },
   {
-    files: ['ui/src/shared/ipc/**'],
+    files: ['frontend/src/shared/ipc/**'],
     rules: { 'no-restricted-imports': 'off' },
   },
   {
-    files: ['ui/src/**/*.{ts,tsx}'],
+    files: ['frontend/src/**/*.{ts,tsx}', 'frontend/tests/**/*.ts'],
     extends: [reactHooks.configs.flat.recommended],
   },
   {

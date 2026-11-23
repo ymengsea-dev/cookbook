@@ -1,0 +1,189 @@
+/* The only stylesheet: Tailwind, the design tokens and base element styles. Components style
+   themselves with utility classes. Preflight is left out on purpose: styles build on browser defaults. */
+@layer theme, base, components, utilities;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities) source(none);
+@source './';
+
+/* Design tokens. Components use these only: no hard-coded colour, spacing or font.
+   Warm editorial palette: every neutral leans warm, data colours are muted. One font family. */
+:root {
+  color-scheme: light dark;
+
+  /* Surfaces and text */
+  --paper: #f5f0e6;
+  --surface: #fbf8f2;
+  --sidebar: #efe8dc;
+  --ink: #2a2521;
+  --ink-secondary: #786e64;
+  --rule: #e3d9c8;
+  --accent: #b0563a;
+  --on-accent: #fffdf9;
+
+  /* Data and status colours, in chart order */
+  --slate: #6a8ba6;
+  --rust: #c0694e;
+  --sage: #8ba17d;
+  --mustard: #d1a247;
+  --mauve: #9f7b93;
+  --teal: #5e8b80;
+  --peach: #e0a784;
+  --walnut: #8e7058;
+  --stone: #b7ab99;
+
+  /* Derived */
+  --hover: color-mix(in srgb, var(--ink) 6%, transparent);
+  --selected: color-mix(in srgb, var(--accent) 14%, transparent);
+  --focus: var(--accent);
+
+  /* One font for everything. macOS falls back to system fonts for Khmer, CJK and Thai. */
+  --font: system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+  --weight-light: 300;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --line-height: 1.5;
+
+  /* 4 px spacing grid. Tailwind's spacing scale is the same grid: `p-4` is `--space-4`. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-14: 56px;
+
+  /* Layout */
+  --sidebar-width: 232px;
+  --toolbar-height: 52px;
+  --traffic-light-inset: 80px;
+  --page-max-width: 1040px;
+  --text-max-width: 420px;
+  --icon-size: 16px;
+  --control-height: 28px;
+  --peek-width: 360px;
+  --board-column-width: 272px;
+  --run-output-max-height: 320px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #1d1a17;
+    --surface: #27231f;
+    --sidebar: #191613;
+    --ink: #eee7db;
+    --ink-secondary: #a69c90;
+    --rule: #3a342d;
+    --accent: #d27c5d;
+    --on-accent: #1d1a17;
+
+    --slate: #7d9db7;
+    --rust: #cf7a5e;
+    --sage: #97ad89;
+    --mustard: #d9ae58;
+    --mauve: #b08da4;
+    --teal: #6f9c91;
+    --peach: #e3b091;
+    --walnut: #a3846b;
+    --stone: #6e665b;
+  }
+}
+
+/* Tailwind's default scales are removed, so a utility exists only for a token.
+   `static` keeps every variable in the output: the CodeMirror theme reads them too. */
+@theme static {
+  --*: initial;
+  --spacing: 4px;
+
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-base: 13px;
+  --text-md: 15px;
+  --text-lg: 19px;
+  --text-xl: 30px;
+  --text-display: 34px;
+  --text-hero: 54px;
+  --tracking-tight: -0.01em;
+  --radius-sm: 6px;
+  --radius-md: 9px;
+  --radius-lg: 14px;
+}
+
+/* Utility names for tokens that change in dark mode, such as `bg-paper` and `text-ink-secondary`. */
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-sidebar: var(--sidebar);
+  --color-ink: var(--ink);
+  --color-ink-secondary: var(--ink-secondary);
+  --color-rule: var(--rule);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-slate: var(--slate);
+  --color-rust: var(--rust);
+  --color-sage: var(--sage);
+  --color-mustard: var(--mustard);
+  --color-mauve: var(--mauve);
+  --color-teal: var(--teal);
+  --color-peach: var(--peach);
+  --color-walnut: var(--walnut);
+  --color-stone: var(--stone);
+  --color-hover: var(--hover);
+  --color-selected: var(--selected);
+  --color-focus: var(--focus);
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  --font-sans: var(--font);
+  --font-weight-light: var(--weight-light);
+  --font-weight-regular: var(--weight-regular);
+  --font-weight-medium: var(--weight-medium);
+  --font-weight-semibold: var(--weight-semibold);
+}
+
+@layer base {
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+    margin: 0;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font);
+    font-size: var(--text-base);
+    line-height: var(--line-height);
+    -webkit-font-smoothing: antialiased;
+    /* App chrome is not selectable text, like native controls. Content opts back in with `select-text`. */
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: default;
+  }
+
+  button {
+    font: inherit;
+    color: inherit;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+}
