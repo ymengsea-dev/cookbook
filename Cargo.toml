@@ -9,8 +9,10 @@ rust-version = "1.90"
 publish = false
 
 [workspace.dependencies]
+base64 = "0.23.1"
 blake3 = "1.8.7"
 notify = "9.0.0"
+pulldown-cmark = { version = "0.13.6", default-features = false, features = ["html"] }
 rusqlite = { version = "0.43.0", features = ["bundled"] }
 rustix = { version = "1.1.6", features = ["process"] }
 serde = { version = "1.0.229", features = ["derive"] }
@@ -24,9 +26,11 @@ ts-rs = { version = "12.0.1", features = ["no-serde-warnings"] }
 ulid = "3.0.0"
 vault-core = { path = "backend/vault-core" }
 vault-index = { path = "backend/vault-index" }
+vault-io = { path = "backend/vault-io" }
 vault-run = { path = "backend/vault-run" }
 vault-views = { path = "backend/vault-views" }
 yaml-rust2 = "0.13.2"
+zip = { version = "9.8.1", default-features = false, features = ["deflate"] }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

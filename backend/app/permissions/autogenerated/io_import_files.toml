@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-io-import-files"
+description = "Enables the io_import_files command without any pre-configured scope."
+commands.allow = ["io_import_files"]
+
+[[permission]]
+identifier = "deny-io-import-files"
+description = "Denies the io_import_files command without any pre-configured scope."
+commands.deny = ["io_import_files"]

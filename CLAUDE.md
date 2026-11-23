@@ -52,6 +52,11 @@ cargo install --locked cargo-deny && cargo deny check bans
   - `definition.rs` (the view file types), `store.rs` (`.vault/views/<id>.json`; unknown keys kept on save), `values.rs` (type inference, L-4), `filter.rs`, `engine.rs` (`run_view`: source, filter, sort, group), `board.rs` (columns and card order), `actions.rs` (new note, move card, rename column; note writes go through `vault-core`).
   - Views read notes from the index (`NoteIndex::notes`), not from the files.
 
+- `backend/vault-io`: import and export (IO-1 to IO-5). No Tauri, no network.
+  - `plan.rs` (where each imported file goes: a folder becomes a new top-level folder, files go to the root, a ZIP unpacks at the root; clashes get a number), `import.rs` (copies with `create_new`, fixes links to renamed files, writes a report to `.vault/imports/`), `import_keys.rs` (re-keys copies whose key exists; gives notes with code a key so the app marks them untrusted), `links.rs` (Markdown links and wikilinks, skipping code blocks), `export_note.rs`, `export_html.rs` (images as `data:` URLs), `export_zip.rs`, `walk.rs`, `names.rs`.
+  - Only portable `.vault` files (`is_portable_internal` in `vault-core`) are exported or imported; `settings.local.json` never is.
+  - Imports and exports take a `Job` for progress and Cancel.
+
 - `backend/vault-run`: runs code blocks (E-11 to E-16). No Tauri, no network.
   - `config.rs` (runners and time limit from `settings.local.json`), `locate.rs` (finds the program; a Finder-launched app has a short PATH), `trust.rs` (the first-run warning and untrusted notes), `run.rs` (`start`: runner, then `Consent`, then the program), `program.rs` (own process group, time limit, Stop, streamed output), `output.rs` (UTF-8 across chunks, 256 KB limit).
   - Only `app` may depend on it (`deny.toml`), so import and sync can never run code.
@@ -63,7 +68,7 @@ cargo install --locked cargo-deny && cargo deny check bans
   - `events.rs`: event names sent to the UI.
   - `indexing.rs`: `Indexer`, a background thread that keeps the index in sync and sends `index-progress`, then `index-updated` when anything changed. Every command that writes a note calls `state.request_index_sync()`; open views run again on `index-updated`.
   - `lifecycle.rs`: closing the window or pressing ⌘Q waits for the UI to save, up to 3 s, and stops running code.
-  - `book_drop.rs`: PDFs dropped on the window are imported in Rust, then `books-imported` is sent. `commands/books.rs` also serves PDF.js its bundled cMaps and fonts (`reader_data`, from `bundle.resources`).
+  - `file_drop.rs`: files dropped on the window are handled in Rust: PDFs become books (`books-imported`); notes, folders and ZIPs are imported. `io_jobs.rs`: the one import or export allowed at a time, sending `io-progress`; every IO command ends with `io-finished`. `commands/books.rs` also serves PDF.js its bundled cMaps and fonts (`reader_data`, from `bundle.resources`).
   - `consent.rs`: the native "not sandboxed" and "trust this note" dialogs, shown from Rust so the UI can't answer them. `runs.rs`: code runs in progress, for `code_stop`.
   - `tauri.conf.json` holds the window, CSP and bundle settings; `capabilities/default.json` is generated.
 - `frontend/`: the React UI. `index.html` is copied to `dist/`, `src/main.tsx` is bundled there, and Tailwind builds `src/app.css` into `dist/renderer.css`.
@@ -76,6 +81,7 @@ cargo install --locked cargo-deny && cargo deny check bans
   - `src/search/`: ⌘P quick open (`QuickOpen`, fuzzy titles in `fuzzy.ts`) and the Search page (full text through `search_notes`).
   - `src/views/`: list and board views. `useOpenView` holds the open view and reruns it on `index-updated`; `ViewsProvider` holds the list for the sidebar. Board drag uses pointer events, not HTML drag and drop (Tauri can intercept it). Pure logic in `values.ts`, `grid.ts`, `board.ts`. Class lists the list, board and settings share are in `styles.ts`.
   - `src/reader/`: the Books page and the PDF reader (PDF.js). `pdf.ts` opens books with worker fetch and wasm off, so nothing needs `fetch` or `wasm-unsafe-eval`; `scripts/build.mjs` copies the worker and the plain-JS image decoders to `dist/pdfjs/`. `PageStack` draws only on-screen pages; `useReadingPosition` saves progress. Pure logic in `readerLayout.ts` and `bookText.ts`.
+  - `src/io/`: the Import & Export page. `useIoStatus` (held by the shell) follows `io-progress` and `io-finished`. Pure text in `ioText.ts`.
   - `src/settings/`: the Settings page.
   - `src/shared/`:
     - `ipc` (typed `invoke`/`listen`, generated `bindings/`)

@@ -7,6 +7,7 @@ use vault_index::NoteIndex;
 use crate::error::{CommandError, CommandResult, ErrorCode};
 use crate::events::VAULT_CHANGED;
 use crate::indexing::Indexer;
+use crate::io_jobs::IoJobs;
 use crate::runs::RunRegistry;
 
 /// State shared by all commands. Commands clone the `Arc` so no lock is held during file I/O.
@@ -21,6 +22,8 @@ pub struct AppState {
     pub app_writer: VaultWriter,
     /// Code blocks running now.
     pub runs: Arc<RunRegistry>,
+    /// The import or export running now, if any.
+    pub io_jobs: Arc<IoJobs>,
 }
 
 impl AppState {

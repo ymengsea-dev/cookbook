@@ -61,9 +61,9 @@ Each task covers one feature only, and is small enough to build in one session.
 
 **M6 · Move notes in and out**
 
-- [ ] T-27 Import Markdown
-- [ ] T-28 Export one note
-- [ ] T-29 Export everything as ZIP
+- [x] T-27 Import Markdown
+- [x] T-28 Export one note
+- [x] T-29 Export everything as ZIP
 
 **M7 · Make it yours**
 

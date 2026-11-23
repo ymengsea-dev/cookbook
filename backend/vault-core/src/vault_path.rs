@@ -86,6 +86,19 @@ impl VaultPath {
     }
 }
 
+/// Files in `.vault/` that belong to the vault and travel with it, in sync and in exports.
+/// `settings.local.json`, the trash, the index and caches stay on this Mac.
+const PORTABLE_INTERNAL: &[&str] = &[".vault/settings.json", ".vault/reader.json"];
+const PORTABLE_INTERNAL_FOLDERS: &[&str] = &[".vault/views/", ".vault/themes/", ".vault/snippets/"];
+
+/// True for a vault-relative path such as `.vault/views/board.json` that may leave this Mac.
+pub fn is_portable_internal(path: &str) -> bool {
+    PORTABLE_INTERNAL.contains(&path)
+        || PORTABLE_INTERNAL_FOLDERS
+            .iter()
+            .any(|folder| path.starts_with(folder) && path.len() > folder.len())
+}
+
 pub(crate) fn is_markdown_name(name: &str) -> bool {
     name.to_lowercase().ends_with(".md")
 }

@@ -50,6 +50,12 @@ pub fn ensure_key(content: &str) -> Result<String, VaultError> {
     set_property(content, KEY_PROPERTY, &key)
 }
 
+/// Returns `content` with a fresh `key`, for a copy whose key another note already has (V-10).
+pub fn replace_key(content: &str) -> Result<String, VaultError> {
+    let key = PropertyValue::Text(Ulid::generate().to_string());
+    set_property(content, KEY_PROPERTY, &key)
+}
+
 impl Vault {
     /// Every note that would get a key from "adopt vault", for the preview.
     pub fn notes_without_key(&self) -> Result<Vec<VaultPath>, VaultError> {

@@ -14,3 +14,9 @@ pub const INDEX_UPDATED: &str = "index-updated";
 
 /// Payload: `BookImport`. PDFs dropped on the window were copied into `books/`.
 pub const BOOKS_IMPORTED: &str = "books-imported";
+
+/// Payload: `IoProgress`. An import or export is under way.
+pub const IO_PROGRESS: &str = "io-progress";
+
+/// Payload: `IoOutcome`. An import or export finished, failed or was cancelled.
+pub const IO_FINISHED: &str = "io-finished";

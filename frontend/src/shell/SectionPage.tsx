@@ -1,5 +1,6 @@
 import type { RefObject } from 'react';
 import { NoteView, type NoteViewHandle } from '../editor/index.ts';
+import { IoPage, type IoStatus } from '../io/index.ts';
 import { BooksPage } from '../reader/index.ts';
 import { SearchPage } from '../search/index.ts';
 import { SettingsPage } from '../settings/index.ts';
@@ -18,11 +19,14 @@ interface SectionPageProps {
   readonly actions: NoteActions;
   /** The open note, so app commands such as ⌘↩ can reach it. */
   readonly noteRef: RefObject<NoteViewHandle | null>;
+  /** The import or export under way, and how the last one ended. */
+  readonly ioStatus: IoStatus;
   readonly onOpenNote: (path: string) => void;
   readonly onOpenView: (id: string) => void;
 }
 
-export function SectionPage({ section, openPath, openView, actions, noteRef, onOpenNote, onOpenView }: SectionPageProps) {
+export function SectionPage(props: SectionPageProps) {
+  const { section, openPath, openView, actions, noteRef, ioStatus, onOpenNote, onOpenView } = props;
   switch (section) {
     case 'notes':
       return <NotesPage openPath={openPath} actions={actions} noteRef={noteRef} />;
@@ -36,6 +40,8 @@ export function SectionPage({ section, openPath, openView, actions, noteRef, onO
       return <ViewPage view={openView} onOpenNote={onOpenNote} />;
     case 'trash':
       return <TrashPage />;
+    case 'io':
+      return <IoPage status={ioStatus} />;
     case 'settings':
       return <SettingsPage />;
   }

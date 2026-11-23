@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-io-export-zip"
+description = "Enables the io_export_zip command without any pre-configured scope."
+commands.allow = ["io_export_zip"]
+
+[[permission]]
+identifier = "deny-io-export-zip"
+description = "Denies the io_export_zip command without any pre-configured scope."
+commands.deny = ["io_export_zip"]

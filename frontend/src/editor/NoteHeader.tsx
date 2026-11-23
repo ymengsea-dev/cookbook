@@ -1,5 +1,6 @@
 import { useState, type KeyboardEvent, type SyntheticEvent } from 'react';
-import { classNames } from '../shared/ui/index.ts';
+import { useCommand, type CommandId } from '../shared/commands/index.ts';
+import { classNames, styles } from '../shared/ui/index.ts';
 import { folderPaths, noteTitle, parentFolder, useVault } from '../shared/vault/index.ts';
 import type { SaveStatus } from './useNoteSaver.ts';
 
@@ -83,6 +84,20 @@ export function NoteHeader({ path, status, onRename, onMove }: NoteHeaderProps) 
           {STATUS_LABELS[status]}
         </span>
       </div>
+      <div className="flex gap-2">
+        <CommandButton command="note.exportMarkdown" />
+        <CommandButton command="note.exportHtml" />
+      </div>
     </header>
+  );
+}
+
+/** A small button for a note command, such as exporting it (IO-4). */
+function CommandButton({ command }: { command: CommandId }) {
+  const { title, enabled, run } = useCommand(command);
+  return (
+    <button type="button" className={classNames(styles.quietButton, 'px-2 text-ink-secondary text-sm')} disabled={!enabled} onClick={run}>
+      {title}
+    </button>
   );
 }

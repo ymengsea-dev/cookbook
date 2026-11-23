@@ -4,6 +4,7 @@
 pub mod app;
 pub mod books;
 pub mod code;
+pub mod io;
 pub mod notes;
 pub mod search;
 pub mod settings;

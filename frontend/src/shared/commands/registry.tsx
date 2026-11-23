@@ -11,6 +11,10 @@ export type CommandId =
   | 'note.delete'
   | 'code.run'
   | 'book.import'
+  | 'io.importFolder'
+  | 'io.importFiles'
+  | 'note.exportMarkdown'
+  | 'note.exportHtml'
   | 'search.quickOpen'
   | 'sidebar.toggle'
   | 'go.notes'
@@ -18,6 +22,7 @@ export type CommandId =
   | 'go.views'
   | 'go.books'
   | 'go.trash'
+  | 'go.io'
   | 'app.settings'
   | 'view.newNote'
   | 'view.togglePin';

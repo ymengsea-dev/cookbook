@@ -39,6 +39,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "book_save_details",
         "book_save_position",
         "reader_data",
+        "io_import_folder",
+        "io_import_files",
+        "io_cancel",
+        "io_export_zip",
+        "note_export_markdown",
+        "note_export_html",
     ]);
     tauri_build::try_build(tauri_build::Attributes::new().app_manifest(manifest))?;
     Ok(())

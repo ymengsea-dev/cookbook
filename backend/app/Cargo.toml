@@ -16,6 +16,7 @@ tauri-plugin-dialog = { workspace = true }
 ts-rs = { workspace = true }
 vault-core = { workspace = true }
 vault-index = { workspace = true }
+vault-io = { workspace = true }
 vault-run = { workspace = true }
 vault-views = { workspace = true }
 

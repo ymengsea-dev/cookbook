@@ -4,7 +4,7 @@ import { useVault } from '../shared/vault/index.ts';
 import { useViews } from '../views/index.ts';
 import { FileTree } from './FileTree.tsx';
 import { IndexStatus } from './IndexStatus.tsx';
-import { ALL_VIEWS, LIBRARY, SETTINGS, TRASH, type Section, type SectionId } from './sections.ts';
+import { ALL_VIEWS, IMPORT_EXPORT, LIBRARY, SETTINGS, TRASH, type Section, type SectionId } from './sections.ts';
 
 const item =
   'flex items-center gap-2 h-(--control-height) px-2 border-0 rounded-sm bg-transparent text-left hover:bg-hover aria-[current=page]:bg-selected aria-[current=page]:font-medium [&_svg]:text-ink-secondary aria-[current=page]:[&_svg]:text-accent';
@@ -56,6 +56,7 @@ export function Sidebar({ current, openPath, openViewId, onOpenNote, onOpenView 
         )}
       </nav>
       <div className="flex flex-col gap-2">
+        <SidebarItem section={IMPORT_EXPORT} current={current} />
         <SidebarItem section={TRASH} current={current} />
         <hr className={styles.hairline} />
         <IndexStatus />

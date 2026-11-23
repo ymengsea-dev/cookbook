@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-io-cancel"
+description = "Enables the io_cancel command without any pre-configured scope."
+commands.allow = ["io_cancel"]
+
+[[permission]]
+identifier = "deny-io-cancel"
+description = "Denies the io_cancel command without any pre-configured scope."
+commands.deny = ["io_cancel"]

@@ -10,7 +10,10 @@ import type { CommandError } from './bindings/CommandError.ts';
 import type { ContentHash } from './bindings/ContentHash.ts';
 import type { Filter } from './bindings/Filter.ts';
 import type { FilterOp } from './bindings/FilterOp.ts';
+import type { ImportReport } from './bindings/ImportReport.ts';
 import type { IndexProgress } from './bindings/IndexProgress.ts';
+import type { IoOutcome } from './bindings/IoOutcome.ts';
+import type { IoProgress } from './bindings/IoProgress.ts';
 import type { LocalSettings } from './bindings/LocalSettings.ts';
 import type { NoteFile } from './bindings/NoteFile.ts';
 import type { OutputStream } from './bindings/OutputStream.ts';
@@ -36,9 +39,14 @@ import type { ViewDefinition } from './bindings/ViewDefinition.ts';
 import type { ViewKind } from './bindings/ViewKind.ts';
 import type { ViewRow } from './bindings/ViewRow.ts';
 import type { ViewSource } from './bindings/ViewSource.ts';
+import type { ZipOptions } from './bindings/ZipOptions.ts';
 
 export type {
   AdoptReport,
+  ImportReport,
+  IoOutcome,
+  IoProgress,
+  ZipOptions,
   Book,
   BookImport,
   ReadingPosition,
@@ -130,6 +138,12 @@ interface CommandMap {
   book_save_details: { args: { id: string; title: string; pages: number; cover: number[] }; result: null };
   book_save_position: { args: { id: string; position: ReadingPosition }; result: null };
   reader_data: { args: { kind: ReaderDataKind; name: string }; result: ArrayBuffer };
+  io_import_folder: { args: NoArgs; result: null };
+  io_import_files: { args: NoArgs; result: null };
+  io_cancel: { args: NoArgs; result: null };
+  io_export_zip: { args: { options: ZipOptions }; result: null };
+  note_export_markdown: { args: { path: string }; result: null };
+  note_export_html: { args: { path: string }; result: null };
 }
 
 export type CommandId = keyof CommandMap;
@@ -153,6 +167,8 @@ interface EventMap {
   'index-progress': IndexProgress;
   'index-updated': null;
   'books-imported': BookImport;
+  'io-progress': IoProgress;
+  'io-finished': IoOutcome;
 }
 
 /** Listens to a Rust event. Call the returned function to stop listening. */

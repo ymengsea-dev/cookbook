@@ -105,6 +105,28 @@ pub fn set_property(content: &str, key: &str, value: &PropertyValue) -> Result<S
     Ok(updated)
 }
 
+/// Removes `key` and its value lines. When nothing else is left, the empty block goes too,
+/// so a note that only had the app's `key` comes back exactly as it was written.
+pub fn remove_property(content: &str, key: &str) -> String {
+    let Some(block) = find_block(content) else {
+        return content.to_string();
+    };
+    let Some((start, end)) = key_lines(content, &block, key) else {
+        return content.to_string();
+    };
+    let without = format!("{}{}", &content[..start], &content[end..]);
+    let Some(block) = find_block(&without) else {
+        return without;
+    };
+    if !without[block.yaml_start..block.yaml_end].trim().is_empty() {
+        return without;
+    }
+    let after_closing = without[block.yaml_end..]
+        .find('\n')
+        .map_or(without.len(), |newline| block.yaml_end + newline + 1);
+    without[after_closing..].to_string()
+}
+
 /// Finds the opening `---` on the first line and the next `---` or `...` line.
 fn find_block(content: &str) -> Option<Block> {
     let mut lines = line_spans(content);
@@ -265,6 +287,22 @@ fn needs_quotes(text: &str, in_list: bool) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn removing_the_only_key_removes_the_whole_block() {
+        assert_eq!(
+            remove_property("---\nkey: 01J\n---\n# Hi\n", "key"),
+            "# Hi\n"
+        );
+        assert_eq!(
+            remove_property("---\nkey: 01J\ntags: [a]\n---\n# Hi\n", "key"),
+            "---\ntags: [a]\n---\n# Hi\n"
+        );
+        assert_eq!(
+            remove_property("# No front matter\n", "key"),
+            "# No front matter\n"
+        );
+    }
 
     fn text(value: &str) -> PropertyValue {
         PropertyValue::Text(value.to_string())

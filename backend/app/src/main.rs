@@ -1,9 +1,10 @@
-mod book_drop;
 mod commands;
 mod consent;
 mod error;
 mod events;
+mod file_drop;
 mod indexing;
+mod io_jobs;
 mod lifecycle;
 mod runs;
 mod state;
@@ -18,7 +19,7 @@ fn main() -> ExitCode {
         .manage(AppState::default())
         .on_window_event(|window, event| {
             lifecycle::on_window_event(window, event);
-            book_drop::on_window_event(window, event);
+            file_drop::on_window_event(window, event);
         })
         .invoke_handler(tauri::generate_handler![
             commands::app::app_info,
@@ -58,6 +59,12 @@ fn main() -> ExitCode {
             commands::books::book_save_details,
             commands::books::book_save_position,
             commands::books::reader_data,
+            commands::io::io_import_folder,
+            commands::io::io_import_files,
+            commands::io::io_cancel,
+            commands::io::io_export_zip,
+            commands::io::note_export_markdown,
+            commands::io::note_export_html,
         ])
         .build(tauri::generate_context!());
 

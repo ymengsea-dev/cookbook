@@ -47,6 +47,7 @@ MyVault/
     trash/                 this device only
     index/index.db         this device only, rebuildable
     cache/covers/          this device only, rebuildable (book covers)
+    imports/               this device only (one report per import)
     sync/manifest.json     this device only
 ```
 

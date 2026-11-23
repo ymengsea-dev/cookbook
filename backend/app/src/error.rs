@@ -2,6 +2,7 @@ use serde::Serialize;
 use ts_rs::TS;
 use vault_core::VaultError;
 use vault_index::IndexError;
+use vault_io::IoError;
 use vault_run::RunError;
 use vault_views::ViewError;
 
@@ -35,6 +36,10 @@ pub enum ErrorCode {
     RunnerMissing,
     /// The user said no to running the code.
     Declined,
+    /// Another import or export is still running.
+    Busy,
+    Cancelled,
+    BadZip,
     Io,
 }
 
@@ -105,6 +110,19 @@ impl From<RunError> for CommandError {
             RunError::RunnerMissing { .. } => ErrorCode::RunnerMissing,
             RunError::Declined => ErrorCode::Declined,
             RunError::Io { .. } => ErrorCode::Io,
+        };
+        Self::new(code, message)
+    }
+}
+
+impl From<IoError> for CommandError {
+    fn from(error: IoError) -> Self {
+        let message = error.to_string();
+        let code = match error {
+            IoError::Vault(vault_error) => return Self::from(vault_error),
+            IoError::File { .. } => ErrorCode::Io,
+            IoError::BadZip(_) => ErrorCode::BadZip,
+            IoError::Cancelled(_) => ErrorCode::Cancelled,
         };
         Self::new(code, message)
     }

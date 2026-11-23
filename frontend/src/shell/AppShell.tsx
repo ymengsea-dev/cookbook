@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { NoteViewHandle } from '../editor/index.ts';
+import { useIoStatus } from '../io/index.ts';
 import { QuickOpen } from '../search/index.ts';
 import { CommandProvider, type CommandTable } from '../shared/commands/index.ts';
-import { invoke, listen, type TreeEntry } from '../shared/ipc/index.ts';
+import { invoke, isCommandError, listen, type TreeEntry } from '../shared/ipc/index.ts';
 import { Banner, classNames } from '../shared/ui/index.ts';
 import { useSettings } from '../shared/settings/index.ts';
 import { treeHasPath, useVault } from '../shared/vault/index.ts';
@@ -62,6 +63,17 @@ export function AppShell() {
   const actions = useNoteActions(openPath, showNote);
   const { createNote, deleteNote } = actions;
   const { chooseVault, showError } = vault;
+  const ioStatus = useIoStatus(useCallback(() => { setSection('io'); }, []));
+
+  // Cancelling is not a problem worth a banner.
+  const runIo = useCallback(
+    (work: Promise<null>) => {
+      work.catch((cause: unknown) => {
+        if (!isCommandError(cause) || cause.code !== 'cancelled') showError(cause);
+      });
+    },
+    [showError],
+  );
 
   // PDFs imported from the menu or dropped on the window (R-1): show them, and any problems.
   useEffect(() => {
@@ -94,6 +106,26 @@ export function AppShell() {
         enabled: hasVault,
         run: () => { invoke('book_import', {}).catch(showError); },
       },
+      'io.importFolder': {
+        title: 'Import Folder…',
+        enabled: hasVault,
+        run: () => { setSection('io'); runIo(invoke('io_import_folder', {})); },
+      },
+      'io.importFiles': {
+        title: 'Import Files…',
+        enabled: hasVault,
+        run: () => { setSection('io'); runIo(invoke('io_import_files', {})); },
+      },
+      'note.exportMarkdown': {
+        title: 'Export Markdown…',
+        enabled: openPath !== null,
+        run: () => { if (openPath !== null) runIo(invoke('note_export_markdown', { path: openPath })); },
+      },
+      'note.exportHtml': {
+        title: 'Export HTML…',
+        enabled: openPath !== null,
+        run: () => { if (openPath !== null) runIo(invoke('note_export_html', { path: openPath })); },
+      },
       'search.quickOpen': { title: 'Open Note…', shortcut: 'Mod-p', enabled: hasVault, run: () => { setQuickOpenVisible(true); } },
       'sidebar.toggle': {
         title: sidebarOpen ? 'Hide Sidebar' : 'Show Sidebar',
@@ -105,6 +137,7 @@ export function AppShell() {
       'go.search': { title: 'Search', shortcut: 'Mod-Shift-f', enabled: true, run: () => { setSection('search'); } },
       'go.books': { title: 'Books', shortcut: 'Mod-2', enabled: true, run: () => { setSection('books'); } },
       'go.views': { title: 'All Views', shortcut: 'Mod-4', enabled: true, run: () => { setSection('views'); } },
+      'go.io': { title: 'Import & Export', enabled: true, run: () => { setSection('io'); } },
       'go.trash': { title: 'Trash', shortcut: 'Mod-3', enabled: true, run: () => { setSection('trash'); } },
       'app.settings': { title: 'Settings', shortcut: 'Mod-,', enabled: true, run: () => { setSection('settings'); } },
       'view.newNote': {
@@ -126,7 +159,7 @@ export function AppShell() {
         },
       },
     }),
-    [sidebarOpen, chooseVault, showError, hasVault, hasNote, section, createNote, deleteNote, viewData, saveView, newNoteInView, showNote],
+    [sidebarOpen, chooseVault, showError, runIo, openPath, hasVault, hasNote, section, createNote, deleteNote, viewData, saveView, newNoteInView, showNote],
   );
 
   return (
@@ -150,6 +183,7 @@ export function AppShell() {
               openView={openView}
               actions={actions}
               noteRef={noteView}
+              ioStatus={ioStatus}
               onOpenNote={showNote}
               onOpenView={showView}
             />
