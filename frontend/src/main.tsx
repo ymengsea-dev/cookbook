@@ -1,16 +1,15 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { invoke, listen } from './shared/ipc/index.ts';
 import { AppearanceProvider } from './shared/appearance/index.ts';
 import { flushBeforeQuit } from './shared/lifecycle.ts';
 import { SettingsProvider } from './shared/settings/index.ts';
 import { VaultProvider } from './shared/vault/index.ts';
-import { AppShell } from './shell/AppShell.tsx';
+import { AppShell, onQuitRequested, quitApp } from './shell/index.ts';
 import { ViewsProvider } from './views/index.ts';
 
 // Closing the window or pressing ⌘Q waits for open notes to save (E-5).
-void listen('before-quit', () => {
-  void flushBeforeQuit().then(() => invoke('app_quit', {}));
+void onQuitRequested(() => {
+  void flushBeforeQuit().then(() => quitApp());
 });
 
 const container = document.getElementById('root');

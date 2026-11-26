@@ -99,6 +99,8 @@ export type {
   VaultChange,
   VaultInfo,
   VaultSettings,
+  ReaderDataKind,
+  UnlistenFn,
 };
 
 type NoArgs = Record<string, never>;
@@ -170,7 +172,7 @@ interface CommandMap {
 
 export type CommandId = keyof CommandMap;
 
-/** Calls a Rust command. Features use this, never `@tauri-apps/api` directly. */
+/** Calls a Rust command. Only `api/` folders use this, never `@tauri-apps/api` directly. */
 export function invoke<K extends CommandId>(id: K, args: CommandMap[K]['args']): Promise<CommandMap[K]['result']> {
   return tauriInvoke<CommandMap[K]['result']>(id, args);
 }

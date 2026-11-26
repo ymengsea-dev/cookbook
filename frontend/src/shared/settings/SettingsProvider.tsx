@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { invoke, type SettingsSnapshot, type VaultSettings } from '../ipc/index.ts';
+import type { SettingsSnapshot, VaultSettings } from '../ipc/index.ts';
 import { useVault } from '../vault/index.ts';
+import { getSettings, saveLastNote, saveVaultSettings } from './api/settingsStoreApi.ts';
 
 /** Changes are saved this long after the last edit, so a slider drag writes once (S-5). */
 const SAVE_DELAY_MS = 300;
@@ -22,7 +23,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
   const reload = useCallback(async () => {
     try {
-      const loaded = await invoke('settings_get', {});
+      const loaded = await getSettings();
       setSnapshot(loaded);
       if (loaded.warnings.length > 0) showError(loaded.warnings.join(' '));
     } catch (cause) {
@@ -34,7 +35,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (info === null) return;
     let cancelled = false;
-    invoke('settings_get', {}).then(
+    getSettings().then(
       (loaded) => {
         if (cancelled) return;
         setSnapshot(loaded);
@@ -58,7 +59,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       setSnapshot((current) => (current === null ? current : { ...current, vault: settings }));
       clearTimeout(saveTimer.current);
       saveTimer.current = setTimeout(() => {
-        invoke('settings_save_vault', { settings }).catch((cause: unknown) => {
+        saveVaultSettings(settings).catch((cause: unknown) => {
           showError(cause);
           void reload();
         });
@@ -72,7 +73,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     if (path === lastSavedNote.current) return;
     lastSavedNote.current = path;
     // Not worth an error banner: the worst case is not reopening this note next time.
-    invoke('settings_save_local', { settings: { lastNote: path } }).catch(() => undefined);
+    saveLastNote(path).catch(() => undefined);
   }, []);
 
   const value = useMemo(

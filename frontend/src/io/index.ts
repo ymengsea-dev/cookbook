@@ -1,2 +1,2 @@
-export { IoPage } from './IoPage.tsx';
-export { useIoStatus, type IoStatus } from './useIoStatus.ts';
+export { IoPage } from './pages/IoPage.tsx';
+export { useIoStatus, type IoStatus } from './hooks/useIoStatus.ts';
