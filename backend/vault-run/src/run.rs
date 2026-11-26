@@ -5,8 +5,8 @@ use vault_core::{KEY_PROPERTY, PropertyValue, Vault, VaultPath, read_property};
 
 use crate::RunError;
 use crate::config::{RunSettings, Runner};
-use crate::locate::{find_program, search_folders};
-use crate::program::{Program, ResolvedRunner};
+use crate::process::locate::{find_program, search_folders};
+use crate::process::program::{Program, ResolvedRunner};
 use crate::trust::{RunTrust, accept_warning, trust_note};
 
 /// One code block the user asked to run.

@@ -7,8 +7,8 @@ use std::path::{Path, PathBuf};
 use vault_core::{Vault, VaultPath, is_portable_internal};
 
 use crate::IoError;
-use crate::names::{clean_name, has_extension, numbered};
-use crate::walk::files_under;
+use crate::shared::names::{clean_name, has_extension, numbered};
+use crate::shared::walk::files_under;
 
 /// Give up numbering after this many clashes for one name.
 const MAX_NUMBER: u32 = 10_000;

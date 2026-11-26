@@ -5,7 +5,7 @@ use std::sync::Mutex;
 use serde::Serialize;
 use ts_rs::TS;
 
-use crate::tree::{TreeEntry, read_tree};
+use crate::notes::{TreeEntry, read_tree};
 use crate::writer::VaultWriter;
 use crate::{ContentHash, VaultError, VaultPath};
 
@@ -78,7 +78,7 @@ impl Vault {
 
     /// Every note in the vault, depth first.
     pub fn note_paths(&self) -> Result<Vec<VaultPath>, VaultError> {
-        Ok(crate::keys::note_paths(&self.tree()?))
+        Ok(crate::notes::note_paths(&self.tree()?))
     }
 
     pub fn read_note(&self, path: &VaultPath) -> Result<NoteFile, VaultError> {

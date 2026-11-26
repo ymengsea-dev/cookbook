@@ -4,11 +4,11 @@ use tauri::{AppHandle, Emitter, Manager};
 use vault_core::{Vault, VaultWatcher, VaultWriter};
 use vault_index::NoteIndex;
 
+use crate::background::indexing::Indexer;
+use crate::background::io_jobs::IoJobs;
+use crate::background::runs::RunRegistry;
 use crate::error::{CommandError, CommandResult, ErrorCode};
 use crate::events::VAULT_CHANGED;
-use crate::indexing::Indexer;
-use crate::io_jobs::IoJobs;
-use crate::runs::RunRegistry;
 
 /// State shared by all commands. Commands clone the `Arc` so no lock is held during file I/O.
 #[derive(Default)]

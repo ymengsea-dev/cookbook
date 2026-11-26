@@ -10,9 +10,9 @@ use pulldown_cmark::{Options, Parser, html};
 use vault_core::{Vault, VaultPath, note_body};
 
 use crate::IoError;
-use crate::export_note::linked_file;
-use crate::links::{folder_of, map_link_targets};
-use crate::names::stem;
+use crate::export::markdown::linked_file;
+use crate::shared::links::{folder_of, map_link_targets};
+use crate::shared::names::stem;
 
 /// Images bigger than this stay as links, so one photo can't make the page huge.
 const MAX_EMBED_BYTES: u64 = 20 * 1024 * 1024;

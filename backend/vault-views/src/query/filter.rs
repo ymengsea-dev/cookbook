@@ -4,7 +4,7 @@ use std::cmp::Ordering;
 
 use vault_core::PropertyValue;
 
-use crate::values::{as_bool, as_number, compare_text, is_date, is_empty, value_texts};
+use crate::query::values::{as_bool, as_number, compare_text, is_date, is_empty, value_texts};
 use crate::{Filter, FilterOp, PropertyType, ViewSource};
 
 /// True when the note at `path` with `tags` belongs to `source`.

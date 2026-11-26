@@ -4,39 +4,27 @@
 
 mod books;
 mod error;
-mod front_matter;
 mod hash;
-mod keys;
-mod library;
 mod notes;
-mod reader;
 mod settings;
-mod themes;
-mod trash;
-mod tree;
 mod vault;
 mod vault_path;
 mod watcher;
 mod writer;
 
-pub use books::{BOOKS_DIR, BookFile, BookId, book_fingerprint};
+pub use books::{BOOKS_DIR, Book, BookFile, BookId, BookRecord, ReadingPosition, book_fingerprint};
 pub use error::VaultError;
-pub use front_matter::{
-    Property, PropertyValue, note_body, read_properties, read_property, remove_property,
-    set_property,
-};
 pub use hash::ContentHash;
-pub use keys::{AdoptReport, KEY_PROPERTY, SkippedNote, ensure_key, has_key, replace_key};
-pub use library::Book;
-pub use reader::{BookRecord, ReadingPosition};
+pub use notes::{
+    AdoptReport, KEY_PROPERTY, Property, PropertyValue, SkippedNote, TrashEntry, TreeEntry,
+    TreeEntryKind, ensure_key, has_key, note_body, read_properties, read_property, read_tree,
+    remove_property, replace_key, set_property,
+};
 pub use settings::{
     AppSettings, AppearanceSettings, Density, EditorSettings, FontSettings, JsonFile,
-    LayoutSettings, LocalSettings, SCHEMA_VERSION, SettingsSnapshot, SidebarSide, ThemeMode,
-    VaultSettings, load_app_settings, remember_vault,
+    LayoutSettings, LocalSettings, SCHEMA_VERSION, SettingsSnapshot, SidebarSide, THEMES_DIR, Theme,
+    ThemeColors, ThemeFile, ThemeList, ThemeMode, VaultSettings, load_app_settings, remember_vault,
 };
-pub use themes::{THEMES_DIR, Theme, ThemeColors, ThemeFile, ThemeList};
-pub use trash::TrashEntry;
-pub use tree::{TreeEntry, TreeEntryKind, read_tree};
 pub use vault::{NoteFile, Vault};
 pub use vault_path::{VAULT_DIR, VaultPath, is_portable_internal};
 pub use watcher::{VaultChange, VaultWatcher};

@@ -1,27 +1,18 @@
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use tauri::ipc::Response;
 use tauri::{AppHandle, Emitter, Manager, State};
 use tauri_plugin_dialog::DialogExt;
 use ts_rs::TS;
-use vault_core::{Book, BookId, ReadingPosition, Vault, VaultPath};
+use vault_core::{Book, BookId, ReadingPosition, VaultPath};
 
 use super::run_in_background;
+use crate::background::imports::import_books;
 use crate::error::{CommandError, CommandResult, ErrorCode};
 use crate::events::BOOKS_IMPORTED;
 use crate::state::AppState;
-
-/// What an import did, from the menu or a drop on the window (R-1).
-#[derive(Debug, Default, Clone, Serialize, TS)]
-#[serde(rename_all = "camelCase")]
-#[ts(export)]
-pub struct BookImport {
-    pub imported: Vec<VaultPath>,
-    /// One message per file that could not be imported.
-    pub problems: Vec<String>,
-}
 
 /// PDF.js data files bundled with the app, which it asks for while drawing (R-3).
 #[derive(Debug, Clone, Copy, Deserialize, TS)]
@@ -67,18 +58,6 @@ pub async fn book_import(app: AppHandle, state: State<'_, AppState>) -> CommandR
     // The UI may be reloading; the Books page lists the new books when it next loads.
     let _ = app.emit(BOOKS_IMPORTED, report);
     Ok(())
-}
-
-/// Imports each file, carrying on past the ones that fail.
-pub fn import_books(vault: &Vault, sources: &[PathBuf]) -> BookImport {
-    let mut report = BookImport::default();
-    for source in sources {
-        match vault.import_book(source) {
-            Ok(path) => report.imported.push(path),
-            Err(error) => report.problems.push(error.to_string()),
-        }
-    }
-    report
 }
 
 /// The PDF's bytes, for PDF.js. Sent raw, not as JSON, because books are large.

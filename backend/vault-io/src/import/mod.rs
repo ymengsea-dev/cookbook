@@ -1,6 +1,10 @@
 //! Importing notes (IO-1 to IO-3): a folder, single files or a ZIP. Nothing in the vault is
 //! ever overwritten, and links between the imported notes keep working.
 
+pub(crate) mod keys;
+pub(crate) mod plan;
+pub(crate) mod report;
+
 use std::collections::HashMap;
 use std::fs::{self, File};
 use std::path::{Path, PathBuf};
@@ -9,14 +13,14 @@ use tempfile::TempDir;
 use vault_core::Vault;
 use zip::ZipArchive;
 
-use crate::import_keys::KeyBook;
-use crate::links::{
+use crate::import::keys::KeyBook;
+use crate::import::plan::{ItemKind, Plan, PlannedItem, plan_files, plan_folder, plan_tree};
+use crate::import::report::{ImportReport, RenamedItem, SkippedItem};
+use crate::shared::links::{
     encode_target, folder_of, is_local_target, map_link_targets, map_wikilinks, percent_decode,
     relative_link, resolve, split_anchor,
 };
-use crate::names::stem;
-use crate::plan::{ItemKind, Plan, PlannedItem, plan_files, plan_folder, plan_tree};
-use crate::report::{ImportReport, RenamedItem, SkippedItem};
+use crate::shared::names::stem;
 use crate::{IoError, Job};
 
 pub enum ImportSource {

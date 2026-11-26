@@ -3,21 +3,18 @@
 
 mod actions;
 mod board;
-mod definition;
-mod engine;
-mod filter;
-mod store;
-mod values;
+mod files;
+mod query;
 
 pub use actions::{move_card, new_note_in_view, open_view, rename_board_column};
 pub use board::{BoardColumn, card_column, column_value, rename_column};
-pub use definition::{
+pub use files::definition::{
     BoardSettings, Column, Filter, FilterOp, NO_VALUE, PropertyType, SortDirection, SortRule,
     ViewDefinition, ViewKind, ViewSource,
 };
-pub use engine::{PropertyInfo, RowGroup, ViewContent, ViewData, ViewRow, run_view};
-pub use store::{VIEW_SCHEMA_VERSION, create_view, list_views, load_view, save_view};
-pub use values::typed_value;
+pub use files::store::{VIEW_SCHEMA_VERSION, create_view, list_views, load_view, save_view};
+pub use query::engine::{PropertyInfo, RowGroup, ViewContent, ViewData, ViewRow, run_view};
+pub use query::values::typed_value;
 
 #[derive(Debug, thiserror::Error)]
 pub enum ViewError {

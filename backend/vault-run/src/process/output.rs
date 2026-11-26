@@ -1,6 +1,6 @@
 //! Turning a program's raw output into text events for the UI, with a size limit.
 
-use crate::events::{OutputStream, RunEvent};
+use crate::process::events::{OutputStream, RunEvent};
 
 /// Decodes UTF-8 that arrives in chunks. A character split across two chunks, common
 /// with Khmer, Chinese or Japanese output, is held back until the rest of it arrives.

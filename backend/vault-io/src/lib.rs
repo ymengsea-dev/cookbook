@@ -4,22 +4,15 @@
 //! Every file written into the vault goes through `VaultWriter::create_new`.
 
 mod error;
-mod export_html;
-mod export_note;
-mod export_zip;
+mod export;
 mod import;
-mod import_keys;
 mod job;
-mod links;
-mod names;
-mod plan;
-mod report;
-mod walk;
+mod shared;
 
 pub use error::IoError;
-pub use export_html::export_note_html;
-pub use export_note::export_note_markdown;
-pub use export_zip::{ZipExport, ZipOptions, export_zip};
+pub use export::html::export_note_html;
+pub use export::markdown::export_note_markdown;
+pub use export::zip_archive::{ZipExport, ZipOptions, export_zip};
+pub use import::report::{ImportReport, RenamedItem, SkippedItem};
 pub use import::{ImportSource, import};
 pub use job::{Job, QuietJob};
-pub use report::{ImportReport, RenamedItem, SkippedItem};

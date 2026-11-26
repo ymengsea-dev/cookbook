@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use ts_rs::TS;
 
-use crate::settings::{is_hex_colour, is_theme_id};
+use super::{is_hex_colour, is_theme_id};
 use crate::{SCHEMA_VERSION, Vault, VaultError};
 
 pub const THEMES_DIR: &str = ".vault/themes";
