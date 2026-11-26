@@ -7,8 +7,8 @@ use serde::Serialize;
 use ts_rs::TS;
 use ulid::Ulid;
 
-use crate::front_matter::{PropertyValue, read_property, set_property};
-use crate::tree::{TreeEntry, TreeEntryKind};
+use super::front_matter::{PropertyValue, read_property, set_property};
+use super::tree::{TreeEntry, TreeEntryKind};
 use crate::{VAULT_DIR, Vault, VaultError, VaultPath};
 
 /// The one front matter key the app owns.

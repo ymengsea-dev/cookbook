@@ -36,14 +36,11 @@ cargo install --locked cargo-deny && cargo deny check bans
 
 ## Layout
 
-- `backend/vault-core`: the vault, with no Tauri and no network. One file per topic:
-  - `vault.rs`: open and read.
-  - `vault_path.rs`: `VaultPath`, the only path type; it can never leave the vault.
-  - `writer.rs`: `VaultWriter`, which does atomic writes and remembers their hashes.
-  - `notes.rs`: save, create, rename, move, delete. Every write checks the expected hash.
-  - `trash.rs`, `front_matter.rs` (line-based YAML edits), `keys.rs` (ULID keys and adopt vault), `watcher.rs` (outside changes), `settings/` (JSON files, unknown keys kept).
-  - `settings/appearance.rs` (theme, accent, density, one font, layout; values that could inject CSS are refused), `themes.rs` (theme files in `.vault/themes/`, `#rrggbb` colours only).
-  - Books: `books.rs` (import into `books/`, every PDF in the vault, `BookId` fingerprint), `reader.rs` (`.vault/reader.json` details and progress; covers cached in `.vault/cache/covers/`), `library.rs` (the Books list, most recently read first).
+- `backend/vault-core`: the vault, with no Tauri and no network. One file per topic, grouped into folders by area. `lib.rs` re-exports everything at the crate root, so other crates never name a folder.
+  - At the root: `vault.rs` (open and read), `vault_path.rs` (`VaultPath`, the only path type; it can never leave the vault), `writer.rs` (`VaultWriter`, which does atomic writes and remembers their hashes), `watcher.rs` (outside changes), `hash.rs`, `error.rs`.
+  - `notes/`: `actions.rs` (save, create, rename, move, delete; every write checks the expected hash), `front_matter.rs` (line-based YAML edits), `keys.rs` (ULID keys and adopt vault), `trash.rs`, `tree.rs`.
+  - `settings/`: JSON files with unknown keys kept. `appearance.rs` (theme, accent, density, one font, layout; values that could inject CSS are refused), `themes.rs` (theme files in `.vault/themes/`, `#rrggbb` colours only).
+  - `books/`: `files.rs` (import into `books/`, every PDF in the vault, `BookId` fingerprint), `reader.rs` (`.vault/reader.json` details and progress; covers cached in `.vault/cache/covers/`), `library.rs` (the Books list, most recently read first).
 
 - `backend/vault-index`: the SQLite search index in `.vault/index/index.db`, a disposable cache.
   - `extract.rs` (title, headings, tags, properties, body), `schema.rs` (tables and `SCHEMA_VERSION`; a mismatch rebuilds the DB), `index.rs` (`NoteIndex`: sync by modified time and size, then hash), `search.rs` (FTS5 trigram, plus a LIKE scan for terms under 3 characters).
@@ -64,13 +61,15 @@ cargo install --locked cargo-deny && cargo deny check bans
 
   Add the other crates from `docs/Architecture.md` under `backend/` when their feature starts.
 - `backend/app`: the Tauri shell.
-  - `src/commands/`: one file per area. Commands return `CommandResult<T>` (`error.rs`) and run slow file work with `spawn_blocking`.
-  - `state.rs`: the open vault, its watcher, and the asset-protocol scope (the vault folder only).
-  - `events.rs`: event names sent to the UI.
-  - `indexing.rs`: `Indexer`, a background thread that keeps the index in sync and sends `index-progress`, then `index-updated` when anything changed. Every command that writes a note calls `state.request_index_sync()`; open views run again on `index-updated`.
-  - `lifecycle.rs`: closing the window or pressing ⌘Q waits for the UI to save, up to 3 s, and stops running code.
-  - `file_drop.rs`: files dropped on the window are handled in Rust: PDFs become books (`books-imported`); notes, folders and ZIPs are imported. `io_jobs.rs`: the one import or export allowed at a time, sending `io-progress`; every IO command ends with `io-finished`. `commands/books.rs` also serves PDF.js its bundled cMaps and fonts (`reader_data`, from `bundle.resources`).
-  - `consent.rs`: the native "not sandboxed" and "trust this note" dialogs, shown from Rust so the UI can't answer them. `runs.rs`: code runs in progress, for `code_stop`.
+  - `src/commands/`: one file per area, kept thin. Commands return `CommandResult<T>` (`error.rs`) and run slow file work with `run_in_background` (`spawn_blocking`). Each area matches a UI `api/` file. `commands/books.rs` also serves PDF.js its bundled cMaps and fonts (`reader_data`, from `bundle.resources`).
+  - At the root: `state.rs` (the open vault, its watcher, and the asset-protocol scope: the vault folder only), `events.rs` (event names sent to the UI), `consent.rs` (the native "not sandboxed" and "trust this note" dialogs, shown from Rust so the UI can't answer them).
+  - `src/background/`: work that outlives a single command.
+    - `indexing.rs`: `Indexer`, a background thread that keeps the index in sync and sends `index-progress`, then `index-updated` when anything changed. Every command that writes a note calls `state.request_index_sync()`; open views run again on `index-updated`.
+    - `imports.rs`: imports shared by the File menu commands and window drops (`import_in_background`, `import_books`, the `io-finished` outcome).
+    - `io_jobs.rs`: the one import or export allowed at a time, sending `io-progress`; every IO command ends with `io-finished`.
+    - `file_drop.rs`: files dropped on the window are handled in Rust: PDFs become books (`books-imported`); notes, folders and ZIPs are imported.
+    - `lifecycle.rs`: closing the window or pressing ⌘Q waits for the UI to save, up to 3 s, and stops running code.
+    - `runs.rs`: code runs in progress, for `code_stop`.
   - `tauri.conf.json` holds the window, CSP and bundle settings; `capabilities/default.json` is generated.
 - `frontend/`: the React UI. `index.html` is copied to `dist/`, `src/main.tsx` is bundled there, and Tailwind builds `src/app.css` into `dist/renderer.css`.
   - **Frontend folders.** Each domain (`editor`, `views`, `reader`, `search`, `settings`, `io`, `shell`) uses the same folders. A folder exists only once it has a file. ESLint enforces the three marked rules.

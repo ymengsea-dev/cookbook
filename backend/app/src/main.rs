@@ -1,12 +1,8 @@
+mod background;
 mod commands;
 mod consent;
 mod error;
 mod events;
-mod file_drop;
-mod indexing;
-mod io_jobs;
-mod lifecycle;
-mod runs;
 mod state;
 
 use std::process::ExitCode;
@@ -18,12 +14,12 @@ fn main() -> ExitCode {
         .plugin(tauri_plugin_dialog::init())
         .manage(AppState::default())
         .on_window_event(|window, event| {
-            lifecycle::on_window_event(window, event);
-            file_drop::on_window_event(window, event);
+            background::lifecycle::on_window_event(window, event);
+            background::file_drop::on_window_event(window, event);
         })
         .invoke_handler(tauri::generate_handler![
             commands::app::app_info,
-            lifecycle::app_quit,
+            background::lifecycle::app_quit,
             commands::vault::vault_choose,
             commands::vault::vault_restore,
             commands::vault::vault_tree,
@@ -73,7 +69,7 @@ fn main() -> ExitCode {
 
     match app {
         Ok(app) => {
-            app.run(lifecycle::on_run_event);
+            app.run(background::lifecycle::on_run_event);
             ExitCode::SUCCESS
         }
         Err(error) => {

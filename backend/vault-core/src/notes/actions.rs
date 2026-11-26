@@ -2,9 +2,9 @@
 
 use std::fs;
 
-use crate::front_matter::{Property, PropertyValue, set_property};
-use crate::keys::ensure_key;
-use crate::trash::{TrashEntry, list_trash, move_to_trash, restore_from_trash};
+use super::front_matter::{Property, PropertyValue, set_property};
+use super::keys::ensure_key;
+use super::trash::{TrashEntry, list_trash, move_to_trash, restore_from_trash};
 use crate::{ContentHash, NoteFile, Vault, VaultError, VaultPath};
 
 const UNTITLED: &str = "Untitled";

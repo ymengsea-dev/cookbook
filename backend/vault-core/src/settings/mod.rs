@@ -2,9 +2,11 @@
 //! - `app.json` in the app-support folder: known vaults and the last one opened.
 //! - `.vault/settings.json`: vault settings, synced to other devices.
 //! - `.vault/settings.local.json`: this device only, never synced.
+//! - `.vault/themes/`: theme files, synced (`themes.rs`).
 
 mod appearance;
 mod json_file;
+mod themes;
 
 use std::ops::RangeInclusive;
 use std::path::Path;
@@ -21,6 +23,7 @@ pub use appearance::{
     is_hex_colour, is_theme_id,
 };
 pub use json_file::{JsonFile, SCHEMA_VERSION};
+pub use themes::{THEMES_DIR, Theme, ThemeColors, ThemeFile, ThemeList};
 
 const VAULT_FILE: &str = ".vault/settings.json";
 const LOCAL_FILE: &str = ".vault/settings.local.json";

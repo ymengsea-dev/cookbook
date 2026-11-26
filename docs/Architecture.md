@@ -27,7 +27,18 @@ The core is a Cargo workspace of small crates. Dependencies point one way only, 
 
 ## UI structure
 
-The React code is split by feature, one folder each: `editor`, `views` (list and board), `reader`, `search`, `sync` and `settings`. Shared parts live in `shared/ui` (components and design tokens) and `shared/commands` (the command registry). A feature may import from `shared` and from another feature's public `index.ts`, and from nothing else.
+The React code is split by domain, one folder each: `editor`, `views` (list and board), `reader`, `search`, `settings`, `io` (import and export) and `shell` (the app frame), with `sync` to come. Each domain uses the same folders:
+
+| Folder | Holds |
+| --- | --- |
+| `index.ts` | The domain's public entry. Other domains import only this. |
+| `api/` | One plain function per Rust command or event. The only place that calls `invoke` or `listen`; it mirrors `app/src/commands/`. |
+| `pages/` | Full screens. |
+| `components/` | Pieces of those screens. |
+| `hooks/` | `use*` files and React context providers. |
+| `logic/` | Pure functions, the ones with unit tests. No React and no Rust calls. |
+
+Code used by three or more domains lives in `shared/`: `ipc` (typed `invoke`/`listen` and the generated types), `ui` (components and style class lists), `commands` (the command registry), `vault`, `settings` and `appearance`. ESLint enforces the domain boundaries, the `api/` rule and the purity of `logic/`.
 
 ## Vault on disk
 

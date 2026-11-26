@@ -6,8 +6,7 @@ use std::path::PathBuf;
 use tauri::{AppHandle, DragDropEvent, Emitter, Manager, Window, WindowEvent};
 use vault_io::ImportSource;
 
-use crate::commands::books::import_books;
-use crate::commands::io::{IoOutcome, finished, import_in_background, is_zip};
+use super::imports::{IoOutcome, finished, import_books, import_in_background, is_zip};
 use crate::events::BOOKS_IMPORTED;
 use crate::state::AppState;
 
