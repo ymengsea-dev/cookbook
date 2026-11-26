@@ -10,8 +10,8 @@ use vault_core::{KEY_PROPERTY, Vault, VaultPath, is_portable_internal, remove_pr
 use zip::write::SimpleFileOptions;
 use zip::{CompressionMethod, ZipWriter};
 
-use crate::names::has_extension;
-use crate::walk::files_under;
+use crate::shared::names::has_extension;
+use crate::shared::walk::files_under;
 use crate::{IoError, Job};
 
 #[derive(Debug, Clone, Deserialize, TS)]

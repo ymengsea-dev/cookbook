@@ -15,9 +15,9 @@ use rustix::process::{Pid, Signal, kill_process_group};
 use tempfile::NamedTempFile;
 
 use crate::RunError;
-use crate::events::{OutputStream, RunEvent, RunOutcome};
-use crate::locate::program_path_variable;
-use crate::output::{OutputBuffer, Utf8Decoder};
+use crate::process::events::{OutputStream, RunEvent, RunOutcome};
+use crate::process::locate::program_path_variable;
+use crate::process::output::{OutputBuffer, Utf8Decoder};
 
 /// Output past this size is dropped, so a runaway loop can't flood the editor.
 pub const OUTPUT_LIMIT_BYTES: usize = 256 * 1024;

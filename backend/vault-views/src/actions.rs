@@ -5,9 +5,9 @@ use vault_core::{ContentHash, NoteFile, Property, PropertyValue, Vault, VaultPat
 use vault_index::NoteIndex;
 
 use crate::board::{card_column, column_value, rename_column};
-use crate::engine::{ViewData, ViewRow, run_view};
-use crate::store::{load_view, save_view};
-use crate::values::typed_value;
+use crate::files::store::{load_view, save_view};
+use crate::query::engine::{ViewData, ViewRow, run_view};
+use crate::query::values::typed_value;
 use crate::{FilterOp, NO_VALUE, PropertyType, ViewContent, ViewError, ViewSource};
 
 /// Loads and runs the view `id` against the index.

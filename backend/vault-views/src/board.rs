@@ -6,8 +6,8 @@ use serde::Serialize;
 use ts_rs::TS;
 use vault_core::PropertyValue;
 
-use crate::engine::{ViewRow, value_of};
-use crate::values::{compare_text, typed_value, value_texts};
+use crate::query::engine::{ViewRow, value_of};
+use crate::query::values::{compare_text, typed_value, value_texts};
 use crate::{BoardSettings, NO_VALUE, PropertyType};
 
 #[derive(Debug, Clone, PartialEq, Serialize, TS)]
@@ -135,7 +135,7 @@ fn sort_unsaved(kind: PropertyType, left: &str, right: &str) -> std::cmp::Orderi
     let as_value = |text: &str| PropertyValue::Text(text.to_string());
     match kind {
         PropertyType::Number | PropertyType::Checkbox => {
-            crate::values::compare(kind, &as_value(left), &as_value(right))
+            crate::query::values::compare(kind, &as_value(left), &as_value(right))
         }
         _ => compare_text(left, right),
     }

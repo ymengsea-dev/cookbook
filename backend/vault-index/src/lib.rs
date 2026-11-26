@@ -1,16 +1,15 @@
 //! The search index: a disposable SQLite cache built from the vault's files (X-1 to X-7).
 //! Deleting `.vault/index/` loses nothing; the next sync fills it again.
 
+mod db;
 mod extract;
 mod index;
-mod rows;
-mod schema;
 mod search;
 
+pub use db::rows::IndexedNote;
+pub use db::schema::SCHEMA_VERSION;
 pub use extract::{NoteRecord, extract};
 pub use index::{IndexProgress, NoteIndex, SyncReport};
-pub use rows::IndexedNote;
-pub use schema::SCHEMA_VERSION;
 pub use search::{MATCH_END, MATCH_START, SearchHit, make_snippet};
 
 #[derive(Debug, thiserror::Error)]

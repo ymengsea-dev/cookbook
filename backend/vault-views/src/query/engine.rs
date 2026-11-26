@@ -10,8 +10,8 @@ use vault_core::{ContentHash, PropertyValue};
 use vault_index::IndexedNote;
 
 use crate::board::board_columns;
-use crate::filter::{in_source, passes};
-use crate::values::{compare, compare_text, infer_type, is_empty, value_texts};
+use crate::query::filter::{in_source, passes};
+use crate::query::values::{compare, compare_text, infer_type, is_empty, value_texts};
 use crate::{
     BoardColumn, NO_VALUE, PropertyType, SortDirection, SortRule, ViewDefinition, ViewKind,
 };

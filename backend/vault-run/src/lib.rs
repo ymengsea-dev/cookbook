@@ -6,16 +6,13 @@
 
 mod config;
 mod error;
-mod events;
-mod locate;
-mod output;
-mod program;
+mod process;
 mod run;
 mod trust;
 
 pub use config::{RunSettings, Runner};
 pub use error::RunError;
-pub use events::{OutputStream, RunEvent, RunOutcome};
-pub use program::{OUTPUT_LIMIT_BYTES, Program, Stopper};
+pub use process::events::{OutputStream, RunEvent, RunOutcome};
+pub use process::program::{OUTPUT_LIMIT_BYTES, Program, Stopper};
 pub use run::{CodeRequest, Consent, start};
 pub use trust::{RunTrust, accept_warning, mark_untrusted, trust_note};

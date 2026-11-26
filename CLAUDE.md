@@ -36,27 +36,41 @@ cargo install --locked cargo-deny && cargo deny check bans
 
 ## Layout
 
-- `backend/vault-core`: the vault, with no Tauri and no network. One file per topic, grouped into folders by area. `lib.rs` re-exports everything at the crate root, so other crates never name a folder.
+**Backend folders.** Every crate's `src/` follows the same rule:
+
+- One file per topic, grouped into folders by area.
+- The root holds `lib.rs`, `error.rs`, and files that several areas share.
+- `lib.rs` re-exports the public names, so other crates never name a folder.
+- A folder's `mod.rs` declares its files and may re-export from them. It holds other code only when that code is the area's entry point (`vault-io/src/import/mod.rs`). Never name a file after its folder: clippy's `module_inception` rejects it.
+- Don't name a module after a dependency crate (such as `zip` in `vault-io`), or `use` paths become ambiguous.
+
+- `backend/vault-core`: the vault, with no Tauri and no network.
   - At the root: `vault.rs` (open and read), `vault_path.rs` (`VaultPath`, the only path type; it can never leave the vault), `writer.rs` (`VaultWriter`, which does atomic writes and remembers their hashes), `watcher.rs` (outside changes), `hash.rs`, `error.rs`.
   - `notes/`: `actions.rs` (save, create, rename, move, delete; every write checks the expected hash), `front_matter.rs` (line-based YAML edits), `keys.rs` (ULID keys and adopt vault), `trash.rs`, `tree.rs`.
   - `settings/`: JSON files with unknown keys kept. `appearance.rs` (theme, accent, density, one font, layout; values that could inject CSS are refused), `themes.rs` (theme files in `.vault/themes/`, `#rrggbb` colours only).
   - `books/`: `files.rs` (import into `books/`, every PDF in the vault, `BookId` fingerprint), `reader.rs` (`.vault/reader.json` details and progress; covers cached in `.vault/cache/covers/`), `library.rs` (the Books list, most recently read first).
 
 - `backend/vault-index`: the SQLite search index in `.vault/index/index.db`, a disposable cache.
-  - `extract.rs` (title, headings, tags, properties, body), `schema.rs` (tables and `SCHEMA_VERSION`; a mismatch rebuilds the DB), `index.rs` (`NoteIndex`: sync by modified time and size, then hash), `search.rs` (FTS5 trigram, plus a LIKE scan for terms under 3 characters).
+  - `extract.rs` (title, headings, tags, properties, body), `index.rs` (`NoteIndex`: sync by modified time and size, then hash), `search.rs` (FTS5 trigram, plus a LIKE scan for terms under 3 characters).
+  - `db/`: `schema.rs` (tables and `SCHEMA_VERSION`; a mismatch rebuilds the DB), `rows.rs` (notes read back from the index).
   - `examples/bench.rs` is `pnpm bench`.
 
 - `backend/vault-views`: saved list and board views.
-  - `definition.rs` (the view file types), `store.rs` (`.vault/views/<id>.json`; unknown keys kept on save), `values.rs` (type inference, L-4), `filter.rs`, `engine.rs` (`run_view`: source, filter, sort, group), `board.rs` (columns and card order), `actions.rs` (new note, move card, rename column; note writes go through `vault-core`).
+  - `files/`: `definition.rs` (the view file types), `store.rs` (`.vault/views/<id>.json`; unknown keys kept on save).
+  - `query/`: `values.rs` (type inference, L-4), `filter.rs`, `engine.rs` (`run_view`: source, filter, sort, group).
+  - At the root: `board.rs` (columns and card order), `actions.rs` (new note, move card, rename column; note writes go through `vault-core`).
   - Views read notes from the index (`NoteIndex::notes`), not from the files.
 
 - `backend/vault-io`: import and export (IO-1 to IO-5). No Tauri, no network.
-  - `plan.rs` (where each imported file goes: a folder becomes a new top-level folder, files go to the root, a ZIP unpacks at the root; clashes get a number), `import.rs` (copies with `create_new`, fixes links to renamed files, writes a report to `.vault/imports/`), `import_keys.rs` (re-keys copies whose key exists; gives notes with code a key so the app marks them untrusted), `links.rs` (Markdown links and wikilinks, skipping code blocks), `export_note.rs`, `export_html.rs` (images as `data:` URLs), `export_zip.rs`, `walk.rs`, `names.rs`.
+  - `import/`: `mod.rs` (copies with `create_new`, fixes links to renamed files, writes a report to `.vault/imports/`), `plan.rs` (where each imported file goes: a folder becomes a new top-level folder, files go to the root, a ZIP unpacks at the root; clashes get a number), `keys.rs` (re-keys copies whose key exists; gives notes with code a key so the app marks them untrusted), `report.rs`.
+  - `export/`: `markdown.rs` (one note and its linked files), `html.rs` (images as `data:` URLs), `zip_archive.rs`.
+  - `shared/`: `links.rs` (Markdown links and wikilinks, skipping code blocks), `names.rs`, `walk.rs`.
   - Only portable `.vault` files (`is_portable_internal` in `vault-core`) are exported or imported; `settings.local.json` never is.
   - Imports and exports take a `Job` for progress and Cancel.
 
 - `backend/vault-run`: runs code blocks (E-11 to E-16). No Tauri, no network.
-  - `config.rs` (runners and time limit from `settings.local.json`), `locate.rs` (finds the program; a Finder-launched app has a short PATH), `trust.rs` (the first-run warning and untrusted notes), `run.rs` (`start`: runner, then `Consent`, then the program), `program.rs` (own process group, time limit, Stop, streamed output), `output.rs` (UTF-8 across chunks, 256 KB limit).
+  - At the root: `config.rs` (runners and time limit from `settings.local.json`), `trust.rs` (the first-run warning and untrusted notes), `run.rs` (`start`: runner, then `Consent`, then the program).
+  - `process/`: `locate.rs` (finds the program; a Finder-launched app has a short PATH), `program.rs` (own process group, time limit, Stop, streamed output), `output.rs` (UTF-8 across chunks, 256 KB limit), `events.rs`.
   - Only `app` may depend on it (`deny.toml`), so import and sync can never run code.
 
   Add the other crates from `docs/Architecture.md` under `backend/` when their feature starts.

@@ -9,11 +9,11 @@ use std::path::{Path, PathBuf};
 use vault_core::{Vault, VaultPath};
 
 use crate::IoError;
-use crate::links::{
+use crate::shared::links::{
     encode_target, folder_of, is_local_target, map_link_targets, percent_decode, resolve,
     split_anchor,
 };
-use crate::names::{has_extension, numbered, stem};
+use crate::shared::names::{has_extension, numbered, stem};
 
 const ATTACHMENTS: &str = "attachments";
 const MAX_NUMBER: u32 = 10_000;

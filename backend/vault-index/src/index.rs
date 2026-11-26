@@ -10,8 +10,9 @@ use serde::Serialize;
 use ts_rs::TS;
 use vault_core::{VAULT_DIR, Vault, VaultPath};
 
+use crate::IndexError;
+use crate::db::schema;
 use crate::extract::{NoteRecord, extract};
-use crate::{IndexError, schema};
 
 /// Notes written per transaction. Searches can run between batches.
 const BATCH_SIZE: usize = 100;
