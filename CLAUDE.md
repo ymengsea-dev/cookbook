@@ -73,31 +73,64 @@ cargo install --locked cargo-deny && cargo deny check bans
   - `consent.rs`: the native "not sandboxed" and "trust this note" dialogs, shown from Rust so the UI can't answer them. `runs.rs`: code runs in progress, for `code_stop`.
   - `tauri.conf.json` holds the window, CSP and bundle settings; `capabilities/default.json` is generated.
 - `frontend/`: the React UI. `index.html` is copied to `dist/`, `src/main.tsx` is bundled there, and Tailwind builds `src/app.css` into `dist/renderer.css`.
-  - `src/shell/`: the app frame (sidebar, file tree, flat toolbar, section pages, trash, adopt card). The window uses `titleBarStyle: Overlay`, so the top 52 px of the sidebar and toolbar is a `data-tauri-drag-region` and must stay clear for the window buttons.
+  - **Frontend folders.** Each domain (`editor`, `views`, `reader`, `search`, `settings`, `io`, `shell`) uses the same folders. A folder exists only once it has a file. ESLint enforces the three marked rules.
+    - `index.ts`: the domain's public entry. Other domains import only this (enforced).
+    - `api/<domain>Api.ts`: the only place that calls Rust with `invoke`, `listen` or `createChannel` (enforced). One plain function per command or event. Once it passes about 150 lines, split it by Rust command area, matching `backend/app/src/commands/*.rs` (as `shell/api/` does).
+    - `pages/`: full screens that fill the main area on their own.
+    - `components/`: pieces of this domain's screens: toolbars, panels, cards, rows, overlays. Use sub-folders for big parts (`views/components/board/`).
+    - `hooks/`: every `use*` file and React context provider.
+    - `logic/`: pure functions with no React, `api`, hooks, components or pages (enforced). Their tests live in `frontend/tests/<domain>/logic/`.
+    - Code that the whole project uses goes in `src/shared/`. A Rust call that three domains need goes in that shared module's own `api/` (for example `readNote` in `shared/vault/api/`).
+  - `src/shell/`: the app frame (`components/AppShell`, `SectionPage`, flat `Toolbar`, `sidebar/`) and the Trash page. `main.tsx` imports `shell/index.ts`. The window uses `titleBarStyle: Overlay`, so the top 52 px of the sidebar and toolbar is a `data-tauri-drag-region` and must stay clear for the window buttons.
   - `src/editor/`: CodeMirror 6.
-    - `NoteView` loads a note; `useNoteSaver` runs autosave, conflicts and outside changes.
-    - `NoteEditor` wraps the CodeMirror view.
-    - `setup/` holds the extensions: live preview, tables, code blocks, slash menu, front matter, theme.
-    - `run/` holds running code: `codeRun.ts` (Run buttons, ⌘↩, output panels in a state field), `runWidgets.ts`, `useCodeRunner.ts` (calls `code_run` and streams its `Channel` into the panel). Pure logic in `codeFence.ts` and `runPanel.ts`.
-  - `src/search/`: ⌘P quick open (`QuickOpen`, fuzzy titles in `fuzzy.ts`) and the Search page (full text through `search_notes`).
-  - `src/views/`: list and board views. `useOpenView` holds the open view and reruns it on `index-updated`; `ViewsProvider` holds the list for the sidebar. Board drag uses pointer events, not HTML drag and drop (Tauri can intercept it). Pure logic in `values.ts`, `grid.ts`, `board.ts`. Class lists the list, board and settings share are in `styles.ts`.
-  - `src/reader/`: the Books page and the PDF reader (PDF.js). `pdf.ts` opens books with worker fetch and wasm off, so nothing needs `fetch` or `wasm-unsafe-eval`; `scripts/build.mjs` copies the worker and the plain-JS image decoders to `dist/pdfjs/`. `PageStack` draws only on-screen pages; `useReadingPosition` saves progress. Pure logic in `readerLayout.ts` and `bookText.ts`.
-  - `src/io/`: the Import & Export page. `useIoStatus` (held by the shell) follows `io-progress` and `io-finished`. Pure text in `ioText.ts`.
+    - `pages/NoteView` loads a note; `hooks/useNoteSaver` runs autosave, conflicts and outside changes.
+    - `components/NoteEditor` wraps the CodeMirror view.
+    - `extensions/` holds the CodeMirror extensions: live preview, tables, code blocks, slash menu, front matter, theme. Their pure helpers are in `logic/`.
+    - `extensions/run/` holds running code: `codeRun.ts` (Run buttons, ⌘↩, output panels in a state field) and `runWidgets.ts`. `hooks/useCodeRunner.ts` starts runs through `api/` and streams their events into the panel. Pure logic in `logic/codeFence.ts` and `logic/runPanel.ts`.
+  - `src/search/`: ⌘P quick open (`components/QuickOpen`, fuzzy titles in `logic/fuzzy.ts`) and the Search page (full text through `search_notes`).
+  - `src/views/`: list and board views. `hooks/useOpenView` holds the open view and reruns it on `index-updated`; `hooks/ViewsProvider` holds the list for the sidebar. `components/` has `list/`, `board/` and `settings/`. Board drag uses pointer events, not HTML drag and drop (Tauri can intercept it). Pure logic in `logic/values.ts`, `grid.ts`, `board.ts`. Class lists the list, board and settings share are in `components/styles.ts`.
+  - `src/reader/`: the Books page and the PDF reader (PDF.js), both in `pages/`. `pdf/pdf.ts` opens books with worker fetch and wasm off, so nothing needs `fetch` or `wasm-unsafe-eval`; `scripts/build.mjs` copies the worker and the plain-JS image decoders to `dist/pdfjs/`. `components/PageStack` draws only on-screen pages; `hooks/useReadingPosition` saves progress. Pure logic in `logic/readerLayout.ts` and `logic/bookText.ts`.
+  - `src/io/`: the Import & Export page. `hooks/useIoStatus` (held by the shell) follows `io-progress` and `io-finished`. Pure text in `logic/ioText.ts`.
   - `src/settings/`: the Settings page.
   - `src/shared/`:
     - `ipc` (typed `invoke`/`listen`, generated `bindings/`)
-    - `vault` (open vault, tree, errors, outside-change subscription)
+    - `vault` (open vault, tree, errors, outside-change subscription, and `readNote`)
     - `settings` (settings context with debounced saves)
     - `commands` (the user-action registry: `CommandId`, `useCommand`; commands whose feature doesn't exist yet stay `enabled: false`)
     - `appearance` (`AppearanceProvider` sets the look as CSS variables on the page; built-in themes in `themes.ts`, which must match `app.css`; WCAG checks in `contrast.ts`)
     - `ui` (shared components, and `styles.ts`: class lists for buttons, pages, rows and cards, plus `classNames`)
     - `lifecycle.ts` (work to finish before quitting)
-- UI tests: `node:test` files (`*.test.ts`) in `frontend/tests/`, in the same folders as the code they test under `frontend/src/`, run by `pnpm test:ui`. They run through Node's type stripping, so the UI allows only erasable TypeScript syntax (no `enum`, `namespace` or parameter properties), and test files add `/// <reference types="node" />`. Keep testable logic in plain `.ts` files (see `textDiff.ts`, `slashItems.ts`, `imagePath.ts`).
+- UI tests: `node:test` files (`*.test.ts`) in `frontend/tests/`, in the same folders as the code they test under `frontend/src/`, run by `pnpm test:ui`. They run through Node's type stripping, so the UI allows only erasable TypeScript syntax (no `enum`, `namespace` or parameter properties), and test files add `/// <reference types="node" />`. Keep testable logic in plain `.ts` files in a domain's `logic/` folder (see `editor/logic/`).
 - Workspace lints in `Cargo.toml` forbid `unsafe` and deny `unwrap_used`, `expect_used` and `panic`. `clippy.toml` allows them in tests; integration tests in `tests/` add `#![allow(clippy::unwrap_used)]`.
 - Writes and saving rules:
   - Saving text that equals the file writes nothing, so untouched notes stay byte for byte.
   - The first real editor save adds a `key`.
   - `set_note_property` never adds a key, so a property edit changes exactly one line.
+
+### Where does this UI file go?
+
+Ask the questions in order and stop at the first "yes".
+
+| Question | Folder | Example |
+| --- | --- | --- |
+| Does it call a Rust command or listen to a Rust event? | `api/` | `views/api/viewsApi.ts` |
+| Is it a CodeMirror extension? | `editor/extensions/` | `extensions/livePreview.ts` |
+| Does its name start with `use`, or is it a context provider? | `hooks/` | `views/hooks/useCardDrag.ts` |
+| Is it a component that fills the main area on its own? | `pages/` | `reader/pages/ReaderView.tsx` |
+| Is it any other component (toolbar, panel, card, row, menu, overlay)? | `components/` | `search/components/QuickOpen.tsx` |
+| Is it a list of Tailwind classes that components share? | `components/styles.ts` | `views/components/styles.ts` |
+| Is it anything else: a pure function, a constant, a type? | `logic/` | `views/logic/board.ts` |
+
+Then check where it belongs:
+
+- **Used by three or more domains:** move it to `src/shared/<module>/`, not to a domain.
+- **Used by one other domain:** keep it here and export it from `index.ts`.
+
+When a folder grows:
+
+- **`components/` over about 15 files:** group them into sub-folders by part (`views/components/board/`).
+- **A domain over about 40 files:** split a part out into its own domain instead of nesting deeper.
+- **An `api/` file over about 150 lines:** split it by Rust command area (`shell/api/notesApi.ts`, `adoptApi.ts`, `importExportApi.ts`, `appApi.ts`).
 
 ### UI style
 
@@ -109,7 +142,8 @@ Styling uses Tailwind utility classes in `className`; `frontend/src/app.css` is 
 
 1. Write the `#[tauri::command]` in `backend/app/src/commands/<area>.rs` and register it in `generate_handler!` in `main.rs`. Argument and return types derive `Serialize`/`Deserialize` and `TS` with `#[ts(export)]`.
 2. Run `pnpm sync:commands`. It updates `build.rs` and `capabilities/default.json` from `main.rs`; without it the call fails with a permission error.
-3. Run `pnpm test` to regenerate the TypeScript bindings, then add the command to `CommandMap` in `frontend/src/shared/ipc/index.ts`. UI code calls `invoke` and `listen` from there. ESLint blocks `@tauri-apps/api/core` and `/event` anywhere else.
+3. Run `pnpm test` to regenerate the TypeScript bindings, then add the command to `CommandMap` in `frontend/src/shared/ipc/index.ts`. ESLint blocks `@tauri-apps/api/core` and `/event` anywhere else.
+4. Add a plain function that calls it to the domain's `api/<domain>Api.ts`. Hooks and components call that function, never `invoke` or `listen`.
 
 ## Specs
 
@@ -164,7 +198,7 @@ Code blocks run with the user's rights and no sandbox. Runs start only when the 
 ## Conventions enforced in review and CI
 
 - Rust: no `unwrap()`, `expect()` or `panic!` outside tests. Use one typed error enum per crate, and never panic on user data.
-- TypeScript: `strict`, no `any`. UI feature boundaries (`eslint-plugin-boundaries` or `dependency-cruiser`) are not set up yet.
+- TypeScript: `strict`, no `any`. UI domain boundaries are enforced with `no-restricted-imports` in `eslint.config.js` (see "Frontend folders").
 - Styling: no hard-coded colour, spacing or font, only token utilities on the 4 px spacing grid. Arbitrary values (`[...]`) only wrap tokens, such as `bg-[color-mix(in_srgb,var(--rust)_12%,var(--paper))]`. Colour never carries meaning alone, and components need `axe` checks.
 - Functions run about 40 lines and files about 300. Going over needs a reason.
 - Slow work (scanning, indexing, import, sync, code runs) runs on background threads, can be cancelled and reports progress. Command handlers never block: use `async` commands or `tauri::async_runtime::spawn_blocking`. Lists over about 200 rows are virtualized.

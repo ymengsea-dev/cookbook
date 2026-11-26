@@ -1,7 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { invoke, type Theme, type ThemeList } from '../ipc/index.ts';
+import type { Theme, ThemeList } from '../ipc/index.ts';
 import { useSettings } from '../settings/index.ts';
 import { useVault } from '../vault/index.ts';
+import { listThemes } from './api/appearanceApi.ts';
 import { lookVariables, resolveScheme, type ThemeChoice } from './look.ts';
 import { BUILT_IN_THEMES } from './themes.ts';
 
@@ -44,7 +45,7 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
 
   const reloadThemes = useCallback(async () => {
     try {
-      showThemes(await invoke('theme_list', {}));
+      showThemes(await listThemes());
     } catch (cause) {
       showError(cause);
     }
@@ -53,7 +54,7 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (info === null) return;
     let cancelled = false;
-    invoke('theme_list', {}).then(
+    listThemes().then(
       (list) => {
         if (!cancelled) showThemes(list);
       },

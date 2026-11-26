@@ -1,2 +1,2 @@
-export { QuickOpen } from './QuickOpen.tsx';
-export { SearchPage } from './SearchPage.tsx';
+export { QuickOpen } from './components/QuickOpen.tsx';
+export { SearchPage } from './pages/SearchPage.tsx';

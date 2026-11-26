@@ -1,1 +1,1 @@
-export { BooksPage } from './BooksPage.tsx';
+export { BooksPage } from './pages/BooksPage.tsx';

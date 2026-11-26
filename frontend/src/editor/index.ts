@@ -1,1 +1,1 @@
-export { NoteView, type NoteViewHandle } from './NoteView.tsx';
+export { NoteView, type NoteViewHandle } from './pages/NoteView.tsx';

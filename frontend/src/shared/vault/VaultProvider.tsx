@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { errorMessage, invoke, listen, type TreeEntry, type VaultChange, type VaultInfo } from '../ipc/index.ts';
+import { errorMessage, type TreeEntry, type VaultChange, type VaultInfo } from '../ipc/index.ts';
+import { onVaultChanged, pickVaultFolder, readVaultTree, restoreVault } from './api/vaultApi.ts';
 
 type ChangeListener = (change: VaultChange) => void;
 
@@ -35,7 +36,7 @@ export function VaultProvider({ children }: { children: ReactNode }) {
 
   const refreshTree = useCallback(async () => {
     try {
-      setTree(await invoke('vault_tree', {}));
+      setTree(await readVaultTree());
     } catch (cause) {
       showError(cause);
     }
@@ -43,10 +44,10 @@ export function VaultProvider({ children }: { children: ReactNode }) {
 
   const chooseVault = useCallback(async () => {
     try {
-      const chosen = await invoke('vault_choose', {});
+      const chosen = await pickVaultFolder();
       if (chosen === null) return;
       setInfo(chosen);
-      setTree(await invoke('vault_tree', {}));
+      setTree(await readVaultTree());
     } catch (cause) {
       showError(cause);
     }
@@ -55,11 +56,11 @@ export function VaultProvider({ children }: { children: ReactNode }) {
   // Reopen the vault from last time, if there is one (S-1).
   useEffect(() => {
     let cancelled = false;
-    invoke('vault_restore', {}).then(
+    restoreVault().then(
       async (restored) => {
         if (cancelled || restored === null) return;
         setInfo(restored);
-        setTree(await invoke('vault_tree', {}));
+        setTree(await readVaultTree());
       },
       (cause: unknown) => {
         if (!cancelled) showError(cause);
@@ -103,7 +104,7 @@ function useOutsideChanges(onChanges: (changes: VaultChange[]) => void) {
   useEffect(() => {
     let stop: (() => void) | undefined;
     let unmounted = false;
-    void listen('vault-changed', (changes) => {
+    void onVaultChanged((changes) => {
       handler.current(changes);
     }).then((unlisten) => {
       if (unmounted) unlisten();
